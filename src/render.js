@@ -126,7 +126,7 @@ function calculateFontSizes(lineCount) {
   const minFontSize = 4;
 
   // Parameters for the formula approach
-  const baseSize = viewportDimension * 0.029;
+  const baseSize = viewportDimension * 0.030;
   const maxMultiplier = 3.2;  // reduced max multiplier
   const minMultiplier = 0.6;  // reduced min multiplier for long content
   const decayRate = 0.12;    // more aggressive scaling for content density
@@ -234,6 +234,31 @@ function insertLineBreaksForSubItems(html) {
   return html.replace(/(<li>[^<]*)\n\s*(\d+\.\d+\..*)/g, '$1<br>$2');
 }
 
+// Function to shorten links in markdown content
+function shortenMarkdownLinks(markdown) {
+  if (!markdown) return markdown;
+
+  let processedMarkdown = markdown;
+
+  // Case 1: Replace markdown links where the link text is a URL with [...]
+  // [http://example.com](http://example.com) -> [...](http://example.com)
+  processedMarkdown = processedMarkdown.replace(/\[(https?:\/\/[^\]]+)\]\((https?:\/\/[^)]+)\)/g, '[...]($2)');
+
+  // Case 2: Replace plain URLs that are not in markdown format
+  // http://example.com -> [...](http://example.com)
+  processedMarkdown = processedMarkdown.replace(/(^|\s)(https?:\/\/[^\s]+)(\s|$)/g, '$1[...]($2)$3');
+
+  // Case 3: Replace markdown links where the link text is very long (>30 chars)
+  // [Very long link text that takes up too much space](http://example.com) -> [...](http://example.com)
+  processedMarkdown = processedMarkdown.replace(/\[([^\]]{30,})\]\((https?:\/\/[^)]+)\)/g, '[...]($2)');
+
+  // Case 4: Replace links that have the same text as URL but without http/https prefix
+  // [example.com](https://example.com) -> [...](https://example.com)
+  processedMarkdown = processedMarkdown.replace(/\[([^\/:\]]+\.[^\/:\]]+[^\]]*)\]\((https?:\/\/\1[^)]*)\)/g, '[...]($2)');
+
+  return processedMarkdown;
+}
+
 // Function to check if a font is available in the browser
 async function checkFontAvailability(page, fontFamily) {
   console.log(`Checking availability of font: ${fontFamily}`);
@@ -305,6 +330,9 @@ async function generateImage(version, body, repoUrl, outputPath, logo, debug, th
 
   console.log('Release body content including newline characters:');
   console.log(body.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
+
+  // Process markdown to shorten links before rendering and line estimation
+  body = shortenMarkdownLinks(body);
 
   const page = await browser.newPage();
   await page.setViewportSize({ width: 1000, height: 500 });

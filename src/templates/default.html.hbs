@@ -143,6 +143,7 @@
             border: var(--border-size) solid var(--text-color);
             box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
             padding: var(--panel-padding); /* Reset to standard padding */
+
             position: relative;
             flex: 1;
             overflow-y: auto;
@@ -151,6 +152,9 @@
             width: 95%; /* Slightly narrower */
             margin: 0 auto; /* Center it */
             max-height: calc(var(--viewport-height) - 120px); /* Adjusted to account for fixed header height */
+            padding-bottom: 2.5rem; /* Space for tag clearance */
+            padding-right: 3.5rem; /* Space for tag clearance */
+
         }
 
         /* Inner content wrapper with consistent 1rem border */
@@ -158,6 +162,7 @@
             padding: 0;
             min-height: 100%; /* Fill available space */
             box-sizing: border-box;
+            max-width: calc(100% - 3.5rem); /* Reduced from 6rem to match the padding-right */
         }
 
         /* Ensure last element in list-box has bottom margin */
@@ -292,7 +297,7 @@
             right: 1.2rem; /* Kept the same right position */
             background: var(--accent-one);
             padding: 0.4rem 0.9rem; /* Reduced padding to make the tag smaller */
-            margin-left: 3rem; /* Added left margin to keep text away */
+
             border: var(--border-size) solid var(--text-color);
             box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
             transform: rotate(var(--tag-rotation));
@@ -300,6 +305,8 @@
             font-weight: bold;
             white-space: nowrap;
             z-index: 10; /* Ensure tag stays on top of content */
+            /* Create a more precise clearance area */
+            --tag-clearance: 1.5rem; /* Reduced from 2.5rem */
         }
     </style>
 </head>
