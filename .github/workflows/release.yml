@@ -1,7 +1,7 @@
 name: Release
 
 permissions:
-  contents: read
+  contents: write
   packages: write
   attestations: write
   id-token: write
@@ -10,6 +10,7 @@ on:
   release:
     types:
       - published
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -36,10 +37,13 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            ${{ github.event.release.tag_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.release.tag_name }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
         id: push
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
@@ -55,14 +59,33 @@ jobs:
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-  generate-badge:
-    runs-on: ubuntu-latest
-    needs: build-and-push-image
-    steps:
-      - name: Checkout
+      - name: Update action.yml with current version
+        run: |
+          # Update the Docker image version in action.yml
+          sed -i "s|ghcr.io/automationd/action-brutalease:.*|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}|g" action.yml
+
+          # Commit the changes
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add action.yml
+          git commit -m "Update Docker image version to ${{ github.event.release.tag_name }}"
+
+          # Merge the commit with the previous one
+          git reset --soft HEAD~1
+          git commit --amend -m "Release ${{ github.event.release.tag_name }}"
+
+          # Force push the changes
+          git push --force
+
+          # Move the release tag to the new commit
+          git tag -f ${{ github.event.release.tag_name }}
+          git push --force origin ${{ github.event.release.tag_name }}
+
+      # Checkout the updated code with the new tag
+      - name: Checkout updated code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Generate Banner
         uses: ./
