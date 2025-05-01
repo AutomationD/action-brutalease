@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{projectName}} {{version}} – Neo‑Brutalist Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family={{theme.fontFamily}}:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* theme colors */
+            --main-bg: {{theme.bgOne}};
+            --secondary-bg: {{theme.bgTwo}};
+            --accent-one: {{theme.accentOne}};
+            --accent-one-rgb: {{theme.accentOneRgb}};
+            --accent-three: {{theme.accentThree}};
+            --accent-three-rgb: {{theme.accentThreeRgb}};
+            --text-color: {{theme.text}};
+
+            /* layout */
+            --viewport-width: 1000px;
+            --viewport-height: 500px;
+            --viewport-padding: 1rem;
+            --panel-padding: 1.3rem;
+            --gap: 1rem;
+            --border-size: 4px;
+            --shadow-offset: 6px;
+            --tag-offset: 1rem;
+            --tag-rotation: -10deg;
+
+            /* font sizes from backend */
+            --font-base: {{fontSizes.baseFontSize}}px;
+            --font-heading: {{fontSizes.titleFontSize}}px;
+            --font-list: {{fontSizes.listItemFontSize}}px;
+            --font-line-height: {{fontSizes.lineHeight}};
+            --font-family: '{{theme.fontFamily}}'
+        }
+
+        /* reset */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: var(--font-base);
+            font-family: var(--font-family);
+            line-height: var(--font-line-height);
+        }
+
+        body {
+            background-color: var(--main-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .viewport {
+            width: var(--viewport-width);
+            height: var(--viewport-height);
+            display: flex;
+            flex-direction: column;
+            padding: calc(var(--viewport-padding) * 1.5); /* Increased padding around viewport */
+            padding-top: calc(var(--viewport-padding) * 2); /* Extra padding at top */
+            padding-bottom: calc(var(--viewport-padding) * 2); /* Extra padding at bottom */
+            gap: var(--gap);
+            background: var(--main-bg);
+        }
+
+        .header-box {
+            background: var(--secondary-bg);
+            border: var(--border-size) solid var(--text-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            padding: var(--panel-padding);
+            display: flex;
+            align-items: center; /* Center items vertically */
+            justify-content: space-between; /* Changed back to space-between for better spacing */
+            width: 95%; /* Slightly narrower */
+            margin: 0 auto; /* Center it */
+            height: 80px; /* Fixed height instead of auto */
+            min-height: unset; /* Remove min-height */
+            flex-shrink: 0; /* Prevent shrinking */
+            overflow: hidden; /* Hide any overflow content */
+            position: relative; /* For absolute positioning of children if needed */
+            z-index: 10; /* Ensure it stays on top */
+        }
+        .header-box .icon {
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+        .header-box .logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 0.5rem;
+            border-radius: 5px;
+            object-fit: contain;
+            display: block; /* Ensure proper alignment */
+            align-self: center; /* Center in flex container */
+            transform: translateY(-3px); /* Move the logo up by 3px */
+            flex-shrink: 0; /* Prevent logo from shrinking */
+        }
+        .header-box .left-container {
+            display: flex;
+            align-items: center;
+            /* Removed max-width: 70% to allow full title display */
+            /* Removed overflow: hidden to prevent truncation */
+            flex-shrink: 0; /* Prevent shrinking */
+            margin-right: auto; /* Push everything else to the right */
+        }
+        .header-box .title {
+            font-size: 40px;
+            color: var(--text-color);
+            line-height: 1.1;
+            white-space: nowrap; /* Prevent wrapping */
+            /* Removed overflow: hidden and text-overflow: ellipsis to show full text */
+            text-align: left; /* Changed from right to left alignment */
+            margin-left: 0.3rem; /* Reduced from auto to 0.3rem for less space after logo */
+            flex-grow: 0; /* Changed from 1 to 0 to prevent pushing other elements */
+        }
+        .header-box .description {
+            font-size: 20px; /* Increased from 14px to make it larger */
+            color: var(--text-color);
+            opacity: 0.9; /* Increased from 0.8 for better visibility */
+            font-weight: normal;
+            position: relative;
+            top: 2px;
+            text-align: right;
+            /* Removed max-width: 30% to allow full description */
+            /* Removed overflow: hidden and text-overflow: ellipsis to show full text */
+            white-space: nowrap; /* Prevent wrapping */
+            display: block; /* Ensure block display */
+            height: 1.2em; /* Fixed height */
+            line-height: 1.2; /* Fixed line height */
+            flex-shrink: 0; /* Prevent shrinking */
+            margin-left: 0.3rem; /* Added same spacing as between logo and title */
+        }
+        .list-box {
+            background: var(--secondary-bg);
+            border: var(--border-size) solid var(--text-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            padding: var(--panel-padding); /* Reset to standard padding */
+            position: relative;
+            flex: 1;
+            overflow-y: auto;
+            font-size: var(--font-base);
+            line-height: var(--font-line-height);
+            width: 95%; /* Slightly narrower */
+            margin: 0 auto; /* Center it */
+            max-height: calc(var(--viewport-height) - 120px); /* Adjusted to account for fixed header height */
+        }
+
+        /* Inner content wrapper with consistent 1rem border */
+        .content-wrapper {
+            padding: 0;
+            min-height: 100%; /* Fill available space */
+            box-sizing: border-box;
+        }
+
+        /* Ensure last element in list-box has bottom margin */
+        .list-box > *:last-child {
+            margin-bottom: 1rem; /* Reverted to original value */
+        }
+
+        /* But don't add extra margin if the tag is the last element */
+        .list-box > .tag:last-child {
+            margin-bottom: 0;
+        }
+
+        /* headings */
+        .list-box h1,
+        .list-box h2 {
+            font-size: var(--font-heading);
+            font-weight: bold;
+            margin-bottom: 0.2rem; /* Reduced space after headers */
+            color: var(--text-color);
+            line-height: var(--font-line-height);
+        }
+        .list-box h3 {
+            font-size: calc(var(--font-heading) * 0.9);
+            font-weight: bold;
+            margin-bottom: 0.15rem; /* Reduced space after h3 */
+            color: var(--text-color);
+            line-height: var(--font-line-height);
+        }
+
+        /* lists */
+        .list-box ul,
+        .list-box ol {
+            margin: 0.25rem 0; /* Reduced vertical margin for lists */
+            padding-left: 1.5rem; /* Increased indent */
+            font-size: var(--font-list);
+            line-height: var(--font-line-height);
+        }
+
+        /* Add specific rules for headers followed by lists or paragraphs */
+        .list-box h1 + p,
+        .list-box h2 + p,
+        .list-box h3 + p,
+        .list-box h1 + ul,
+        .list-box h1 + ol,
+        .list-box h2 + ul,
+        .list-box h2 + ol,
+        .list-box h3 + ul,
+        .list-box h3 + ol {
+            margin-top: 0.1rem; /* Very tight spacing when header is followed by content */
+        }
+        .list-box ul ul {
+            margin-top: 0.25rem;
+            padding-left: 1.2rem; /* Slightly less indent for nested lists */
+        }
+        .list-box ul ul ul {
+            margin-top: 0.2rem;
+            padding-left: 1rem; /* Even less indent for deeply nested lists */
+        }
+        .list-box li {
+            font-size: var(--font-list);
+            line-height: var(--font-line-height);
+        }
+        .list-box li br {
+            display: block;
+            margin: 0;
+            padding: 0;
+            line-height: var(--font-line-height);
+        }
+        .list-box p {
+            font-size: var(--font-base);
+            line-height: var(--font-line-height);
+        }
+
+        /* Reduce vertical gap between parent and sub-list */
+        .list-box ol > li > ul,
+        .list-box ol > li > ol,
+        .list-box ul > li > ul,
+        .list-box ul > li > ol {
+            margin-top: 0.05em; /* Tighter spacing */
+        }
+        .list-box li > ul,
+        .list-box li > ol {
+            margin-bottom: 0.05em; /* Tighter spacing */
+        }
+        /* Target the exact structure in your HTML */
+        .list-box ol > li > ul {
+            margin: 0;
+            padding-top: 0;
+        }
+        /* Remove extra space from first and last items in nested lists */
+        .list-box li > ul > li:first-child,
+        .list-box li > ol > li:first-child {
+            margin-top: 0;
+        }
+        .list-box li > ul > li:last-child,
+        .list-box li > ol > li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Increase space between content and the next header */
+        .list-box p + h1, .list-box p + h2, .list-box p + h3,
+        .list-box ul + h1, .list-box ul + h2, .list-box ul + h3,
+        .list-box ol + h1, .list-box ol + h2, .list-box ol + h3 {
+            margin-top: 1.2rem; /* More space before new section headers */
+        }
+
+        /* Add link styling */
+        .list-box a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: normal;
+            font-size: 0.9em;
+            position: relative;
+            padding: 0 0.1rem;
+            background-color: rgba(var(--accent-three-rgb), 0.08);
+            border-bottom: 1px dotted var(--accent-three);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .list-box a:hover {
+            background-color: rgba(var(--accent-three-rgb), 0.15);
+            transform: translateY(-1px);
+        }
+
+        .list-box a:active {
+            transform: translateY(1px);
+        }
+
+        .tag {
+            position: absolute;
+            bottom: 1.2rem; /* Reduced from 1.8rem to position even closer to the bottom */
+            right: 1.2rem; /* Kept the same right position */
+            background: var(--accent-one);
+            padding: 0.4rem 0.9rem; /* Reduced padding to make the tag smaller */
+            margin-left: 3rem; /* Added left margin to keep text away */
+            border: var(--border-size) solid var(--text-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            transform: rotate(var(--tag-rotation));
+            font-size: calc(var(--font-list) * 0.9); /* Reduced font size to make text smaller */
+            font-weight: bold;
+            white-space: nowrap;
+            z-index: 10; /* Ensure tag stays on top of content */
+        }
+    </style>
+</head>
+<body>
+<div class="viewport">
+    <div class="header-box">
+        <div class="left-container">
+            {{#if logo}}
+            <img src="{{logo}}" alt="Logo" class="logo">
+            {{else}}
+            <span class="icon">⚡</span>
+            {{/if}}
+            <span class="title">{{projectName}}</span>
+        </div>
+        {{#if projectDescription}}
+        <span class="description">{{projectDescription}}</span>
+        {{/if}}
+    </div>
+    <div class="list-box {{contentClass}}">
+        <div class="content-wrapper">
+        {{{description}}}
+        </div>
+        <div class="tag">{{version}}</div>
+    </div>
+</div>
+</body>
+</html>

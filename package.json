@@ -1,0 +1,16 @@
+{
+  "name": "postrelease",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/render.test.js",
+    "test:watch": "node --test --watch test/render.test.js",
+    "render": "node src/render.js",
+    "postinstall": "npx playwright install --with-deps"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.7",
+    "marked": "^12.0.0",
+    "playwright": "1.52.0"
+  }
+}
