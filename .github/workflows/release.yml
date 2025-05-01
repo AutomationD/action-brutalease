@@ -64,19 +64,26 @@ jobs:
           # Update the Docker image version in action.yml
           sed -i "s|ghcr.io/automationd/action-brutalease:.*|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}|g" action.yml
 
-          # Commit the changes
+          # Configure git
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
+          
+          # Fetch all branches and tags
+          git fetch --all
+          
+          # Create a temporary branch from the main branch
+          git checkout main
+          
+          # Update action.yml on the main branch
+          sed -i "s|ghcr.io/automationd/action-brutalease:.*|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}|g" action.yml
+          
+          # Commit the changes to main
           git add action.yml
           git commit -m "Update Docker image version to ${{ github.event.release.tag_name }}"
-
-          # Merge the commit with the previous one
-          git reset --soft HEAD~1
-          git commit --amend -m "Release ${{ github.event.release.tag_name }}"
-
-          # Force push the changes
-          git push --force
-
+          
+          # Push the changes to main
+          git push origin main
+          
           # Move the release tag to the new commit
           git tag -f ${{ github.event.release.tag_name }}
           git push --force origin ${{ github.event.release.tag_name }}
