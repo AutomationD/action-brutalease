@@ -10,7 +10,7 @@ vars:
   INPUT_REPO_URL: https://github.com/automationd/action-brutalese
   INPUT_PROJECT_NAME: Brutalease
   INPUT_PROJECT_DESCRIPTION: Neo-brutalist release banner
-  INPUT_LOGO: /app/test/data/logo.png
+  INPUT_LOGO: /github/workspace/test/data/logo.png
   INPUT_DEBUG: true
   INPUT_THEME: default
   INPUT_STRICT_STYLE: true
@@ -45,7 +45,7 @@ tasks:
           -e INPUT_DEBUG="{{.INPUT_DEBUG}}" \
           -e INPUT_LOGO="{{.INPUT_LOGO}}" \
           -e INPUT_THEME="{{.INPUT_THEME}}" \
-          -v {{.ROOT_DIR}}/test/:/app/test/ \
+          -v {{.ROOT_DIR}}/test/:/github/workspace/test/ \
           --entrypoint "" \
           --rm postrelease-action npm run test
 
@@ -69,7 +69,7 @@ tasks:
           -e INPUT_OUTPUT="{{.INPUT_OUTPUT}}" \
           -e INPUT_DEBUG="{{.INPUT_DEBUG}}" \
           -e INPUT_LOGO="{{.INPUT_LOGO}}" \
-          --rm -v {{.ROOT_DIR}}/test:/app/test -w /app postrelease-action
+          --rm -v {{.ROOT_DIR}}/test:/github/workspace/test -w /github/workspace postrelease-action
 
       - |
         if [ -f "{{.INPUT_OUTPUT}}" ]; then
