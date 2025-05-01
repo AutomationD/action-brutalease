@@ -31,11 +31,10 @@ Add this action to your release workflow to automatically generate a Neo-Brutali
 
 ### BASIC EXAMPLE
 
-
 ```yaml
 # ...
 - name: Generate Banner
-  uses: ./
+  uses: automationd/action-brutalease@v1
   with:
     version: ${{ github.event.release.tag_name }}
     body: ${{ github.event.release.body }}
@@ -45,6 +44,41 @@ Add this action to your release workflow to automatically generate a Neo-Brutali
     project_description: Neo-brutalist release banner
     logo: ${{ github.workspace }}/test/data/logo.png
 # ...
+```
+
+### DOCKER IMAGE
+
+This action uses a pre-built Docker image from GitHub Container Registry (GHCR) for faster execution. The image is automatically built and pushed during the release process, ensuring that each version of the action uses its corresponding Docker image.
+
+- Image: `ghcr.io/automationd/action-brutalease:v1.0.0` (version-specific)
+- Each release has its own tag (e.g., `v1.0.0`, `v1.1.0`, etc.)
+- The action.yml file is automatically updated during the release process to use the correct version
+
+You can also use the Docker image directly:
+
+```bash
+# Replace v1.0.0 with the specific version you want to use
+docker pull ghcr.io/automationd/action-brutalease:v1.0.0
+```
+
+### VERSION PINNING
+
+When using this action in your workflows, you can pin to a specific version:
+
+```yaml
+- name: Generate Banner
+  uses: automationd/action-brutalease@v1.0.0  # Pin to specific version
+  with:
+    # inputs...
+```
+
+Or use a major version to automatically get updates within that major version:
+
+```yaml
+- name: Generate Banner
+  uses: automationd/action-brutalease@v1  # Use latest v1.x.x
+  with:
+    # inputs...
 ```
 
 ## INPUTS
