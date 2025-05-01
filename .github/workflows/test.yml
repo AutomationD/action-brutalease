@@ -1,11 +1,6 @@
 name: Run Tests
 
 on:
-  push:
-    branches:
-      - main
-      - feature/wip
-
   pull_request:
     branches:
       - main
