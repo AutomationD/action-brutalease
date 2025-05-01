@@ -62,7 +62,7 @@ jobs:
       - name: Update action.yml with current version
         run: |
           # Update the Docker image version in action.yml
-          sed -i "s|ghcr.io/automationd/action-brutalease:.*|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}|g" action.yml
+          sed -i "s|ghcr.io/automationd/action-brutalease:.*'|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}'|g" action.yml
 
           # Configure git
           git config --global user.name "GitHub Actions"
@@ -75,7 +75,7 @@ jobs:
           git checkout main
           
           # Update action.yml on the main branch
-          sed -i "s|ghcr.io/automationd/action-brutalease:.*|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}|g" action.yml
+          sed -i "s|ghcr.io/automationd/action-brutalease:.*'|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}'|g" action.yml
           
           # Commit the changes to main
           git add action.yml
@@ -95,7 +95,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Generate Banner
-        uses: ./
+        uses: automationd/action-brutalease@${{ github.event.release.tag_name }}
         with:
           version: ${{ github.event.release.tag_name }}
           body: ${{ github.event.release.body }}
