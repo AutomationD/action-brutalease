@@ -2,8 +2,8 @@
 > ![!NOTE]
 > This README was written by AI that seems to like Neo Brutalism...)
 
-![Tests Status](https://github.com/automationd/action-postrelease/actions/workflows/test.yml/badge.svg)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/automationd/action-postrelease)
+![Tests Status](https://github.com/automationd/action-brutalese/actions/workflows/test.yml/badge.svg)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/automationd/action-brutalese)
 ![License](./LICENSE)
 
 **MAKE YOUR RELEASES BOLD. UNAPOLOGETIC. MEMORABLE.**

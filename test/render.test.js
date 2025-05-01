@@ -37,7 +37,7 @@ const testBodies = [
 * Fixed a bug`
   },
   {
-    name: "test2-medium",
+    name: "medium",
     content: `## What's Changed
 * Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
 * Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
@@ -47,10 +47,20 @@ const testBodies = [
 **Full Changelog**: https://github.com/AutomationD/action-brutalease/compare/v0.10.4...v0.10.5`
   },
   {
-    name: "test3-minimal",
+    name: "just-one-change",
     content: `# Changes
 - Just one change`
   },
+  {
+    name: "long-bottom-line",
+    content: `## What's Changed
+* Add neo-brutalist release banner generator by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/1
+
+## New Contributors
+* @AutomationD made their first contribution in https://github.com/AutomationD/action-brutalease/pull/1
+
+**Full Changelog**: https://github.com/AutomationD/action-brutalease/commits/v1.0.0`
+  }
 ];
 
 describe('render.js', () => {
@@ -293,6 +303,170 @@ describe('render.js', () => {
 
     // We don't need to clean up test files as they're now in the results directory
     // and will be cleaned up before the next test run
+  });
+
+  it('should ensure no content overlaps with the tag div', async () => {
+    // Import the generateImage function from render.js
+    const { generateImage } = await import('../src/render.js');
+
+    // Common parameters for all tests
+    const version = 'v1.0.0';
+    const projectName = 'Brutalease';
+    const projectDescription = 'Make your releases look brutalist';
+    const repoUrl = 'https://github.com/AutomationD/action-brutalease';
+    const logo = null;
+    const debug = 'true';
+    const theme = 'default';
+
+    // Test results storage
+    const results = [];
+
+    // Test each body with focus on the long-bottom-line test which had overlap issues
+    for (const testBody of testBodies) {
+      console.log(`\n=== TESTING TAG OVERLAP: ${testBody.name} ===\n`);
+
+      const outputPath = join(resultsDir, `tag-overlap-test-${testBody.name}.png`);
+
+      // Generate the image (and HTML file due to debug=true)
+      await generateImage(
+        version,
+        testBody.content,
+        repoUrl,
+        outputPath,
+        logo,
+        debug,
+        theme,
+        projectName,
+        projectDescription
+      );
+
+      // HTML file path
+      const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
+      console.log(`Generated HTML file: ${htmlPath}`);
+
+      // Check for overlaps using Playwright
+      const browser = await chromium.launch({ headless: true });
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
+      // Load the generated HTML file
+      await page.goto(`file://${htmlPath}`);
+
+      // Evaluate overlap between tag and content elements
+      const overlapInfo = await page.evaluate(() => {
+        // Helper function to get element details
+        function getElementDetails(selector) {
+          const element = document.querySelector(selector);
+          if (!element) return null;
+          return element.getBoundingClientRect();
+        }
+
+        // Get tag element
+        const tag = getElementDetails('.tag');
+        if (!tag) return { hasOverlap: false, message: 'Tag element not found' };
+
+        // Create a safety margin around the tag (accounting for rotation)
+        // We add extra margin to account for the rotation and shadow
+        const safetyMargin = 10; // pixels
+        const tagSafeArea = {
+          left: tag.left - safetyMargin,
+          top: tag.top - safetyMargin,
+          right: tag.right + safetyMargin,
+          bottom: tag.bottom + safetyMargin,
+          width: tag.width + (safetyMargin * 2),
+          height: tag.height + (safetyMargin * 2)
+        };
+
+        // Find all content elements (paragraphs, lists, headings, links)
+        const contentElements = Array.from(document.querySelectorAll('.list-box h1, .list-box h2, .list-box h3, .list-box p, .list-box ul, .list-box ol, .list-box a'));
+
+        // Check for overlaps
+        const overlaps = [];
+
+        for (const element of contentElements) {
+          const rect = element.getBoundingClientRect();
+
+          // Check if this element overlaps with the tag's safe area
+          const hasOverlap = !(
+            rect.right < tagSafeArea.left ||
+            rect.left > tagSafeArea.right ||
+            rect.bottom < tagSafeArea.top ||
+            rect.top > tagSafeArea.bottom
+          );
+
+          if (hasOverlap) {
+            overlaps.push({
+              element: element.tagName + (element.textContent ? ` (${element.textContent.substring(0, 30)}${element.textContent.length > 30 ? '...' : ''})` : ''),
+              elementRect: {
+                left: rect.left,
+                top: rect.top,
+                right: rect.right,
+                bottom: rect.bottom
+              }
+            });
+          }
+        }
+
+        return {
+          hasOverlap: overlaps.length > 0,
+          overlaps,
+          tagRect: tag,
+          tagSafeArea
+        };
+      });
+
+      // Log results
+      if (overlapInfo.hasOverlap) {
+        console.log(`❌ Found ${overlapInfo.overlaps.length} overlaps with tag in ${testBody.name}:`);
+        console.log(JSON.stringify(overlapInfo.overlaps, null, 2));
+      } else {
+        console.log(`✅ No overlaps found with tag in ${testBody.name}`);
+      }
+
+      // Store results
+      results.push({
+        name: testBody.name,
+        hasOverlap: overlapInfo.hasOverlap,
+        overlapCount: overlapInfo.hasOverlap ? overlapInfo.overlaps.length : 0
+      });
+
+      // Save detailed overlap information to JSON file
+      const overlapInfoPath = join(resultsDir, `tag-overlap-info-${testBody.name}.json`);
+      await fs.writeFile(
+        overlapInfoPath,
+        JSON.stringify({
+          testName: testBody.name,
+          overlapInfo,
+          timestamp: new Date().toISOString()
+        }, null, 2)
+      );
+      console.log(`Overlap information saved to: ${overlapInfoPath}`);
+
+      // Cleanup
+      await browser.close();
+
+      // Assert no overlaps
+      assert.strictEqual(
+        overlapInfo.hasOverlap,
+        false,
+        `Content should not overlap with tag in ${testBody.name}`
+      );
+    }
+
+    // Log results summary
+    console.log('\n=== TAG OVERLAP TEST RESULTS ===\n');
+    console.table(results);
+
+    // Save summary results to JSON file
+    const summaryPath = join(resultsDir, 'tag-overlap-results.json');
+    await fs.writeFile(
+      summaryPath,
+      JSON.stringify({
+        results,
+        timestamp: new Date().toISOString()
+      }, null, 2)
+    );
+    console.log(`Tag overlap test results summary saved to: ${summaryPath}`);
   });
 
   async function verifyImageContent(imagePath, expectedItems) {

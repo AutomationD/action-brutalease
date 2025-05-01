@@ -27,7 +27,7 @@
             --border-size: 4px;
             --shadow-offset: 6px;
             --tag-offset: 1rem;
-            --tag-rotation: -10deg;
+            --tag-rotation: -5deg;
 
             /* font sizes from backend */
             --font-base: {{fontSizes.baseFontSize}}px;
@@ -143,6 +143,7 @@
             border: var(--border-size) solid var(--text-color);
             box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
             padding: var(--panel-padding); /* Reset to standard padding */
+
             position: relative;
             flex: 1;
             overflow-y: auto;
@@ -151,6 +152,9 @@
             width: 95%; /* Slightly narrower */
             margin: 0 auto; /* Center it */
             max-height: calc(var(--viewport-height) - 120px); /* Adjusted to account for fixed header height */
+            padding-bottom: 2.5rem; /* Space for tag clearance at bottom */
+            padding-right: 3.5rem; /* Space for tag clearance on right */
+
         }
 
         /* Inner content wrapper with consistent 1rem border */
@@ -158,6 +162,7 @@
             padding: 0;
             min-height: 100%; /* Fill available space */
             box-sizing: border-box;
+            max-width: calc(100% - 3.5rem); /* Reduced from 6rem to match the padding-right */
         }
 
         /* Ensure last element in list-box has bottom margin */
@@ -194,6 +199,12 @@
             padding-left: 1.5rem; /* Increased indent */
             font-size: var(--font-list);
             line-height: var(--font-line-height);
+        }
+
+        /* Add more space after lists when followed by paragraphs */
+        .list-box ul + p,
+        .list-box ol + p {
+            margin-top: 1.1em; /* Add more space when a paragraph follows a list */
         }
 
         /* Add specific rules for headers followed by lists or paragraphs */
@@ -288,11 +299,11 @@
 
         .tag {
             position: absolute;
-            bottom: 1.2rem; /* Reduced from 1.8rem to position even closer to the bottom */
-            right: 1.2rem; /* Kept the same right position */
+            bottom: 1.2rem; /* Position at the bottom */
+            right: 1.2rem; /* Keep the same right position */
             background: var(--accent-one);
             padding: 0.4rem 0.9rem; /* Reduced padding to make the tag smaller */
-            margin-left: 3rem; /* Added left margin to keep text away */
+
             border: var(--border-size) solid var(--text-color);
             box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
             transform: rotate(var(--tag-rotation));
@@ -300,6 +311,8 @@
             font-weight: bold;
             white-space: nowrap;
             z-index: 10; /* Ensure tag stays on top of content */
+            /* Create a more precise clearance area */
+            --tag-clearance: 1.5rem; /* Reduced from 2.5rem */
         }
     </style>
 </head>
