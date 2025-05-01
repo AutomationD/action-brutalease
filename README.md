@@ -48,11 +48,10 @@ Add this action to your release workflow to automatically generate a Neo-Brutali
 
 ### DOCKER IMAGE
 
-This action uses a pre-built Docker image from GitHub Container Registry (GHCR) for faster execution. The image is automatically built and pushed during the release process, ensuring that each version of the action uses its corresponding Docker image.
+This action uses a pre-built Docker image from GitHub Container Registry (GHCR) for faster execution. The image is automatically built and pushed during the release process.
 
-- Image: `ghcr.io/automationd/action-brutalease:v1.0.0` (version-specific)
-- Each release has its own tag (e.g., `v1.0.0`, `v1.1.0`, etc.)
-- The action.yml file is automatically updated during the release process to use the correct version
+- Each release creates Docker images with specific version tags (e.g., `v1.0.0`, `v1.1.0`)
+- The action automatically uses the correct Docker image version that matches the tag/ref you're using
 
 You can also use the Docker image directly:
 
