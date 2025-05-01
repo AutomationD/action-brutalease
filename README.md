@@ -1,10 +1,8 @@
 # NEO-BRUTALIST RELEASE BANNER GENERATOR
-> ![!NOTE]
-> This README was written by AI that seems to like Neo Brutalism...)
 
-![Tests Status](https://github.com/automationd/action-brutalese/actions/workflows/test.yml/badge.svg)
+![Tests](https://github.com/automationd/action-brutalese/actions/workflows/test.yml/badge.svg)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/automationd/action-brutalese)
-![License](./LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **MAKE YOUR RELEASES BOLD. UNAPOLOGETIC. MEMORABLE.**
 
@@ -110,3 +108,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## LICENSE
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+> ![!NOTE]
+> This README was written by AI that seems to like Neo Brutalism
