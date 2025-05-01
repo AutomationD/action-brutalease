@@ -95,7 +95,7 @@ jobs:
           ref: ${{ github.event.release.tag_name }}
 
       - name: Generate Banner
-        uses: automationd/action-brutalease@${{ github.event.release.tag_name }}
+        uses: ./
         with:
           version: ${{ github.event.release.tag_name }}
           body: ${{ github.event.release.body }}
