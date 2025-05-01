@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Set up working directory
-WORKDIR /github/workspace
+WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package*.json ./
@@ -51,4 +51,4 @@ RUN npm ci && npx playwright install --with-deps
 COPY . .
 
 # Set the entrypoint
-ENTRYPOINT ["node", "/github/workspace/src/render.js"]
+ENTRYPOINT ["node", "/app/src/render.js"]
