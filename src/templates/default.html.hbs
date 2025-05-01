@@ -27,7 +27,7 @@
             --border-size: 4px;
             --shadow-offset: 6px;
             --tag-offset: 1rem;
-            --tag-rotation: -10deg;
+            --tag-rotation: -5deg;
 
             /* font sizes from backend */
             --font-base: {{fontSizes.baseFontSize}}px;
@@ -152,8 +152,8 @@
             width: 95%; /* Slightly narrower */
             margin: 0 auto; /* Center it */
             max-height: calc(var(--viewport-height) - 120px); /* Adjusted to account for fixed header height */
-            padding-bottom: 2.5rem; /* Space for tag clearance */
-            padding-right: 3.5rem; /* Space for tag clearance */
+            padding-bottom: 2.5rem; /* Space for tag clearance at bottom */
+            padding-right: 3.5rem; /* Space for tag clearance on right */
 
         }
 
@@ -199,6 +199,12 @@
             padding-left: 1.5rem; /* Increased indent */
             font-size: var(--font-list);
             line-height: var(--font-line-height);
+        }
+
+        /* Add more space after lists when followed by paragraphs */
+        .list-box ul + p,
+        .list-box ol + p {
+            margin-top: 1.1em; /* Add more space when a paragraph follows a list */
         }
 
         /* Add specific rules for headers followed by lists or paragraphs */
@@ -293,8 +299,8 @@
 
         .tag {
             position: absolute;
-            bottom: 1.2rem; /* Reduced from 1.8rem to position even closer to the bottom */
-            right: 1.2rem; /* Kept the same right position */
+            bottom: 1.2rem; /* Position at the bottom */
+            right: 1.2rem; /* Keep the same right position */
             background: var(--accent-one);
             padding: 0.4rem 0.9rem; /* Reduced padding to make the tag smaller */
 

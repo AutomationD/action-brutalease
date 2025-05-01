@@ -126,7 +126,7 @@ function calculateFontSizes(lineCount) {
   const minFontSize = 4;
 
   // Parameters for the formula approach
-  const baseSize = viewportDimension * 0.030;
+  const baseSize = viewportDimension * 0.029;
   const maxMultiplier = 3.2;  // reduced max multiplier
   const minMultiplier = 0.6;  // reduced min multiplier for long content
   const decayRate = 0.12;    // more aggressive scaling for content density
