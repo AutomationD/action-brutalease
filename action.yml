@@ -1,0 +1,44 @@
+name: 'Neo-Brutalist Release Banner Generator'
+description: 'Generates a neo-brutalist style release badge for GitHub releases'
+
+branding:
+  icon: 'tag'
+  color: 'yellow'
+
+inputs:
+  version:
+    description: 'Release version'
+    required: true
+  body:
+    description: 'Release body text (changelog)'
+    required: true
+  repo_url:
+    description: 'Repository URL'
+    required: true
+  project_name:
+    description: 'Project name (defaults to repository name if not provided)'
+    required: false
+  project_description:
+    description: 'Short description of the project to display under the project name'
+    required: false
+  theme:
+    description: 'Theme name to use for styling (e.g. "default")'
+    default: 'default'
+  logo:
+    description: 'Logo URL to display in the badge'
+    required: false
+  debug:
+    description: 'Enable debug mode to save HTML output'
+    required: false
+    default: 'false'
+  strict_style:
+    description: 'If true, will throw an error when fonts or styles are not available'
+    required: false
+    default: 'true'
+  output:
+    description: 'Output file path'
+    default: 'release.png'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

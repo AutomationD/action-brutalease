@@ -1,0 +1,92 @@
+version: '3'
+vars:
+  INPUT_VERSION: v0.10.1
+  INPUT_BODY: |
+    ## What's Changed
+    * Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
+
+
+    **Full Changelog**: https://github.com/AutomationD/action-brutalease/compare/v0.10.4...v0.10.5
+  INPUT_REPO_URL: https://github.com/automationd/action-brutalese
+  INPUT_PROJECT_NAME: Brutalease
+  INPUT_PROJECT_DESCRIPTION: Neo-brutalist release banner
+  INPUT_LOGO: /app/test/data/logo.png
+  INPUT_DEBUG: true
+  INPUT_THEME: default
+  INPUT_STRICT_STYLE: true
+
+tasks:
+  build:
+    desc: Build the Docker image for the action
+    cmds:
+      - docker build -t postrelease-action .
+
+  test:setup:
+    desc: Set up test environment
+    quiet: true
+
+
+  test:unit:
+    desc: Run unit tests inside the Docker container
+    vars:
+      INPUT_OUTPUT: test/results/docker-test-unit.png
+
+    deps:
+      - task: build
+      - task: test:setup
+    cmds:
+      - |
+        docker run \
+          -e INPUT_VERSION="{{.INPUT_VERSION}}" \
+          -e INPUT_BODY="{{.INPUT_BODY}}" \
+          -e INPUT_REPO_URL="{{.INPUT_REPO_URL}}" \
+          -e INPUT_PROJECT_NAME="{{.INPUT_PROJECT_NAME}}" \
+          -e INPUT_PROJECT_DESCRIPTION="{{.INPUT_PROJECT_DESCRIPTION}}" \
+          -e INPUT_DEBUG="{{.INPUT_DEBUG}}" \
+          -e INPUT_LOGO="{{.INPUT_LOGO}}" \
+          -e INPUT_THEME="{{.INPUT_THEME}}" \
+          -v {{.ROOT_DIR}}/test/:/app/test/ \
+          --entrypoint "" \
+          --rm postrelease-action npm run test
+
+  test:action:
+    desc: Test the action functionality
+    quiet: true
+    vars:
+      INPUT_OUTPUT: test/results/docker-test-unit.png
+
+    deps:
+      - task: build
+      - task: test:setup
+    cmds:
+      - |
+        docker run \
+          -e INPUT_VERSION="{{.INPUT_VERSION}}" \
+          -e INPUT_BODY="{{.INPUT_BODY}}" \
+          -e INPUT_REPO_URL="{{.INPUT_REPO_URL}}" \
+          -e INPUT_PROJECT_NAME="{{.INPUT_PROJECT_NAME}}" \
+          -e INPUT_PROJECT_DESCRIPTION="{{.INPUT_PROJECT_DESCRIPTION}}" \
+          -e INPUT_OUTPUT="{{.INPUT_OUTPUT}}" \
+          -e INPUT_DEBUG="{{.INPUT_DEBUG}}" \
+          -e INPUT_LOGO="{{.INPUT_LOGO}}" \
+          --rm -v {{.ROOT_DIR}}/test:/app/test -w /app postrelease-action
+
+      - |
+        if [ -f "{{.INPUT_OUTPUT}}" ]; then
+          echo "Docker test successful - image was generated"
+        else
+          echo "Docker test failed - no image was generated"
+          exit 1
+        fi
+
+  test:
+    desc: Run all tests
+    cmds:
+      - task: test:unit
+      - task: test:action
+
+  clean:
+    desc: Clean up test artifacts
+    cmds:
+      - rm -f test/results/*
+
