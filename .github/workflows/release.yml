@@ -6,7 +6,6 @@ permissions:
   attestations: write
   id-token: write
 
-
 on:
   release:
     types:
@@ -55,18 +54,6 @@ jobs:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
-
-      - name: Update action.yml with current version
-        run: |
-          # Update the Docker image version in action.yml
-          sed -i "s|ghcr.io/automationd/action-brutalease:v[0-9.]*|ghcr.io/automationd/action-brutalease:${{ github.event.release.tag_name }}|g" action.yml
-
-          # Commit and push the changes
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add action.yml
-          git commit -m "Update Docker image version to ${{ github.event.release.tag_name }}"
-          git push
 
   generate-badge:
     runs-on: ubuntu-latest

@@ -40,5 +40,18 @@ inputs:
     default: 'release.png'
 
 runs:
-  using: 'docker'
-  image: 'docker://ghcr.io/automationd/action-brutalease:v1.0.0'
+  using: 'composite'
+  steps:
+    - name: Generate Release Banner
+      uses: docker://ghcr.io/automationd/action-brutalease:${{ github.action_ref || 'latest' }}
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_BODY: ${{ inputs.body }}
+        INPUT_REPO_URL: ${{ inputs.repo_url }}
+        INPUT_PROJECT_NAME: ${{ inputs.project_name }}
+        INPUT_PROJECT_DESCRIPTION: ${{ inputs.project_description }}
+        INPUT_THEME: ${{ inputs.theme }}
+        INPUT_LOGO: ${{ inputs.logo }}
+        INPUT_DEBUG: ${{ inputs.debug }}
+        INPUT_STRICT_STYLE: ${{ inputs.strict_style }}
+        INPUT_OUTPUT: ${{ inputs.output }}
