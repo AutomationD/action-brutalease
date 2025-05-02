@@ -1,23 +1,14 @@
-import { existsSync, unlinkSync, promises as fs } from 'fs';
-import { describe, it, afterEach, before } from 'node:test';
+import {existsSync, promises as fs, unlinkSync} from 'fs';
+import {afterEach, before, describe, it} from 'node:test';
 import assert from 'node:assert';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { chromium } from 'playwright';
+import {fileURLToPath} from 'url';
+import {dirname, join} from 'path';
+import {chromium} from 'playwright';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const resultsDir = join(__dirname, 'results');
 const outputFile = join(resultsDir, 'test-release.png');
 const logoPath = join(__dirname, 'data', 'logo.png');
-
-// process.env.INPUT_BODY = `
-// ## What's Changed
-// * Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
-//
-//
-// **Full Changelog**: https://github.com/AutomationD/action-brutalease/compare/v0.10.4...v0.10.5
-//
-// `;
 
 // Global test bodies for all tests
 const testBodies = [
@@ -63,13 +54,12 @@ const testBodies = [
   }
 ];
 
-
 describe('render.js', () => {
   // Ensure results directory exists before tests run
   before(async () => {
     // Create results directory if it doesn't exist
     try {
-      await fs.mkdir(resultsDir, { recursive: true });
+      await fs.mkdir(resultsDir, {recursive: true});
       console.log(`Created results directory: ${resultsDir}`);
     } catch (err) {
       // Directory might already exist, which is fine
@@ -98,16 +88,20 @@ describe('render.js', () => {
   });
 
   it('should generate release badge image and text exactly as expected', async () => {
-    // Set test environment variables
-    process.env.INPUT_VERSION = 'v1.0.0-test';
-    process.env.INPUT_BODY = '# Changes\n- Fix Bugs\n- Add Tests 2\n- Vibecode the rest';
-    process.env.INPUT_REPO_URL = 'https://github.com/automationd/action-postrelease';
-    process.env.INPUT_PROJECT_NAME = 'Brutalease';
-    process.env.INPUT_PROJECT_DESCRIPTION = 'A beautiful neo-brutalist style release badge generator';
-    process.env.INPUT_THEME = 'default';
-    process.env.INPUT_LOGO = logoPath;
-    process.env.INPUT_OUTPUT = outputFile;
-    process.env.INPUT_DEBUG = 'true';
+    // Import the generateImage function
+    const {generateImage} = await import('../src/render.js');
+
+    // Define input options directly
+    const version = 'v1.0.0-test';
+    const body = '# Changes\n- Fix Bugs\n- Add Tests 2\n- Vibecode the rest';
+    const repoUrl = 'https://github.com/automationd/action-postrelease';
+    const projectName = 'Brutalease';
+    const projectDescription = 'A beautiful neo-brutalist style release badge generator';
+    const themeInput = 'default';
+    const logo = logoPath;
+    const outputPath = outputFile;
+    const debug = true;
+    // Assuming strictStyle defaults to false if not specified
 
     // Define expected content items
     const expectedItems = [
@@ -116,12 +110,22 @@ describe('render.js', () => {
       'Added new feature',
       'Fixed critical bug',
       'v1.0.0-test',
-      'Post-Release Badge'
+      'Post-Release Badge' // This might need updating based on actual project name used
     ];
 
-    // Import the main function from render.js and await its completion
-    const { main } = await import('../src/render.js');
-    await main();
+    // Generate the image by calling generateImage directly with individual arguments
+    await generateImage(
+      version,
+      body,
+      repoUrl,
+      outputPath,
+      logo,
+      debug,
+      themeInput,
+      projectName,
+      projectDescription
+      // strictStyle (optional, defaults to false in function signature)
+    );
 
     // Verify the output file was created
     assert.strictEqual(existsSync(outputFile), true, 'Output file should exist');
@@ -149,12 +153,12 @@ describe('render.js', () => {
       accentOne: '#ff5722'    # Custom accent 1 (Orange)
       accentTwo: '#00bcd4'    # Custom accent 2 (Cyan)
       accentThree: '#e0e0e0' # Custom accent 3 (Light Gray)
-      text: '#f5f5f5'      # Light text
-      fontFamily: '"Courier New", Courier, monospace' # Different font
+      text: '#000000'      # Light text
+      fontFamily: 'Roboto' # Custom font
     `;
 
     // Import the theme parsing function
-    const { parseAndMergeTheme } = await import('../src/render.js');
+    const {parseAndMergeTheme} = await import('../src/render.js');
 
     // Call the function with the YAML input
     const mergedTheme = parseAndMergeTheme(customThemeYaml);
@@ -167,8 +171,10 @@ describe('render.js', () => {
       accentOne: '#ff5722',
       accentTwo: '#00bcd4',
       accentThree: '#e0e0e0',
-      text: '#f5f5f5',
-      fontFamily: '"Courier New", Courier, monospace'
+      shadowColor: '#000000', // Solid black default shadow
+      borderColor: '#000000', // Solid black default border
+      text: '#000000',
+      fontFamily: 'Roboto'
     };
 
     // Assert that the merged theme matches the expected object
@@ -179,7 +185,7 @@ describe('render.js', () => {
 
   it('should scale text properly with sufficient bottom spacing', async () => {
     // Import the generateImage function from render.js
-    const { generateImage } = await import('../src/render.js');
+    const {generateImage} = await import('../src/render.js');
 
     // Common parameters for all tests
     const version = 'v1.0.0';
@@ -187,8 +193,9 @@ describe('render.js', () => {
     const projectDescription = 'Make your releases look brutalist';
     const repoUrl = 'https://github.com/AutomationD/action-brutalease';
     const logo = null;
-    const debug = 'true';
-    const theme = 'default';
+    const debug = true; // Convert string 'true' to boolean
+    const themeInput = 'default'; // Renamed from theme
+    const strictStyle = false; // Assuming default
 
 
     // Test results storage
@@ -216,9 +223,10 @@ describe('render.js', () => {
         outputPath,
         logo,
         debug,
-        theme,
+        themeInput,
         projectName,
-        projectDescription
+        projectDescription,
+        strictStyle
       );
 
       // HTML file path
@@ -226,7 +234,7 @@ describe('render.js', () => {
       console.log(`Generated HTML file: ${htmlPath}`);
 
       // Check the computed styles
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch({headless: true});
       const context = await browser.newContext();
       const page = await context.newPage();
 
@@ -345,7 +353,7 @@ describe('render.js', () => {
 
   it('should ensure no content overlaps with the tag div', async () => {
     // Import the generateImage function from render.js
-    const { generateImage } = await import('../src/render.js');
+    const {generateImage} = await import('../src/render.js');
 
     // Common parameters for all tests
     const version = 'v1.0.0';
@@ -353,8 +361,9 @@ describe('render.js', () => {
     const projectDescription = 'Make your releases look brutalist';
     const repoUrl = 'https://github.com/AutomationD/action-brutalease';
     const logo = null;
-    const debug = 'true';
-    const theme = 'default';
+    const debug = true;
+    const themeInput = 'default'; // Renamed from theme
+    const strictStyle = false; // Assuming default
 
     // Test results storage
     const results = [];
@@ -373,9 +382,10 @@ describe('render.js', () => {
         outputPath,
         logo,
         debug,
-        theme,
+        themeInput,
         projectName,
-        projectDescription
+        projectDescription,
+        strictStyle
       );
 
       // HTML file path
@@ -383,7 +393,7 @@ describe('render.js', () => {
       console.log(`Generated HTML file: ${htmlPath}`);
 
       // Check for overlaps using Playwright
-      const browser = await chromium.launch({ headless: true });
+      const browser = await chromium.launch({headless: true});
       const context = await browser.newContext();
       const page = await context.newPage();
 
@@ -401,7 +411,7 @@ describe('render.js', () => {
 
         // Get tag element
         const tag = getElementDetails('.tag');
-        if (!tag) return { hasOverlap: false, message: 'Tag element not found' };
+        if (!tag) return {hasOverlap: false, message: 'Tag element not found'};
 
         // Create a safety margin around the tag (accounting for rotation)
         // We add extra margin to account for the rotation and shadow

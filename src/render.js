@@ -29,6 +29,127 @@ const defaultTheme = {
   fontFamily: 'Roboto'
 };
 
+// Refactor generateImage to accept individual parameters directly
+async function generateImage(version, body, repoUrl, outputPath, logo = null, debug = false, themeInput = '', projectName = '', projectDescription = '', strictStyle = false) {
+  let browser = null;
+  try {
+    // Parse theme input and merge with defaults using the new function
+    const theme = parseAndMergeTheme(themeInput);
+
+    browser = await chromium.launch({ headless: true });
+
+    // Log the arguments directly
+    console.log('Starting generateImage with arguments:', { version, body, repoUrl, outputPath, logo, debug, themeInput, projectName, projectDescription, strictStyle });
+
+    // Ensure body is a string before attempting replace
+    const bodyString = typeof body === 'string' ? body : '';
+    console.log('Release body content including newline characters:');
+    console.log(bodyString.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
+
+    // Process markdown to shorten links before rendering and line estimation
+    const processedBody = shortenMarkdownLinks(bodyString);
+
+    const page = await browser.newPage();
+    await page.setViewportSize({ width: 1000, height: 500 });
+
+    const templatePath = join(__dirname, 'templates', 'default.html.hbs');
+    console.log('Template path:', templatePath);
+
+    const templateSource = await fs.readFile(templatePath, 'utf8');
+    console.log('Template content length:', templateSource.length);
+    console.log('Template first 100 chars:', templateSource.substring(0, 100));
+    console.log('Template includes new structure:', templateSource.includes('data-line-count="{{lineCount}}"'));
+    console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
+    const template = Handlebars.compile(templateSource);
+
+    // Calculate line count before rendering
+    const lineInfo = estimateLineCount(processedBody);
+    console.log('Estimated line count:', lineInfo);
+
+    // Calculate font sizes based on content density
+    const fontSizes = calculateFontSizes(lineInfo.count);
+    console.log('Calculated font sizes:', fontSizes);
+
+    let description = marked(processedBody);
+    description = insertLineBreaksForSubItems(description);
+    const logoBase64 = logo ? await getBase64Logo(logo) : null;
+    const repoName = getRepoName(repoUrl);
+
+    // Determine Project Name
+    const finalProjectName = projectName || getRepoName(repoUrl);
+
+    // Get the theme configuration
+    const themeConfig = theme;
+
+    // Calculate contrast text color for the tag
+    const tagTextColor = getContrastTextColor(themeConfig.accentOne);
+
+    const templateData = {
+      version,
+      description,
+      repoUrl,
+      repoName,
+      projectName: finalProjectName, // Use determined project name
+      projectDescription,
+      logo: logoBase64,
+      theme: themeConfig, // Pass the theme object directly
+      isImage: Boolean(outputPath),
+      // Add line count and content class to template data
+      lineCount: lineInfo.count,
+      contentClass: lineInfo.contentClass,
+      // Add font size variables
+      fontSizes: fontSizes,
+      tagTextColor: tagTextColor // Pass calculated tag text color
+    };
+
+    console.log('Template data:', templateData);
+    const html = template(templateData);
+    await page.setContent(html);
+    console.log('Template rendered');
+
+    // Check if the specified font is available
+    const fontAvailable = await checkFontAvailability(page, themeConfig.fontFamily);
+    if (!fontAvailable) {
+      const errorMessage = `Error: The specified font '${themeConfig.fontFamily}' is not available.`;
+      console.error(errorMessage);
+
+      // If strict style is enabled, throw an error
+      if (strictStyle === true || String(strictStyle).toLowerCase() === 'true') { // Handle boolean or string 'true'
+        await browser.close();
+        throw new Error(errorMessage);
+      } else {
+        console.warn(`Warning: Continuing with fallback fonts because STRICT_STYLE is not enabled.`);
+      }
+    } else {
+      console.log(`Font '${themeConfig.fontFamily}' is available and will be used.`);
+    }
+
+    if (debug === true || String(debug).toLowerCase() === 'true') {
+      const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
+      await fs.writeFile(htmlPath, html);
+      console.log('Debug HTML saved to:', htmlPath);
+    }
+
+    // Ensure outputPath is provided before taking screenshot
+    if (outputPath) {
+      console.log('Taking screenshot to:', outputPath);
+      await page.screenshot({ path: outputPath });
+      console.log('Screenshot taken');
+    } else {
+      console.warn('Warning: No outputPath provided, skipping screenshot.')
+    }
+
+    await browser.close();
+    console.log('Browser closed');
+  } catch (error) {
+    if (browser) {
+      await browser.close();
+    }
+    console.error('Error generating image:', error);
+    process.exit(1);
+  }
+}
+
 // New function to parse theme input and merge with defaults
 function parseAndMergeTheme(themeInput) {
   let userTheme = {};
@@ -347,141 +468,6 @@ async function checkFontAvailability(page, fontFamily) {
   return isFontAvailable.isAvailable;
 }
 
-// Refactor generateImage to accept a single options object
-async function generateImage(options) {
-  // Destructure options with default values where appropriate
-  const {
-    version,
-    body,
-    repoUrl,
-    outputPath,
-    logo = null,
-    debug = false,
-    themeInput = '',
-    projectName = '',
-    projectDescription = '',
-    strictStyle = false
-  } = options;
-
-  let browser = null;
-  try {
-    // Parse theme input and merge with defaults using the new function
-    const theme = parseAndMergeTheme(themeInput);
-
-    browser = await chromium.launch({ headless: true });
-
-    // Log the destructured options instead of the original arguments
-    console.log('Starting generateImage with options:', { version, body, repoUrl, outputPath, logo, debug, themeInput, projectName, projectDescription, strictStyle });
-
-    // Ensure body is a string before attempting replace
-    const bodyString = typeof body === 'string' ? body : '';
-    console.log('Release body content including newline characters:');
-    console.log(bodyString.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
-
-    // Process markdown to shorten links before rendering and line estimation
-    const processedBody = shortenMarkdownLinks(bodyString);
-
-    const page = await browser.newPage();
-    await page.setViewportSize({ width: 1000, height: 500 });
-
-    const templatePath = join(__dirname, 'templates', 'default.html.hbs');
-    console.log('Template path:', templatePath);
-
-    const templateSource = await fs.readFile(templatePath, 'utf8');
-    console.log('Template content length:', templateSource.length);
-    console.log('Template first 100 chars:', templateSource.substring(0, 100));
-    console.log('Template includes new structure:', templateSource.includes('data-line-count="{{lineCount}}"'));
-    console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
-    const template = Handlebars.compile(templateSource);
-
-    // Calculate line count before rendering
-    const lineInfo = estimateLineCount(processedBody);
-    console.log('Estimated line count:', lineInfo);
-
-    // Calculate font sizes based on content density
-    const fontSizes = calculateFontSizes(lineInfo.count);
-    console.log('Calculated font sizes:', fontSizes);
-
-    let description = marked(processedBody);
-    description = insertLineBreaksForSubItems(description);
-    const logoBase64 = logo ? await getBase64Logo(logo) : null;
-    const repoName = getRepoName(repoUrl);
-
-    // Determine Project Name
-    const finalProjectName = projectName || getRepoName(repoUrl);
-
-    // Get the theme configuration
-    const themeConfig = theme;
-
-    // Calculate contrast text color for the tag
-    const tagTextColor = getContrastTextColor(themeConfig.accentOne);
-
-    const templateData = {
-      version,
-      description,
-      repoUrl,
-      repoName,
-      projectName: finalProjectName, // Use determined project name
-      projectDescription,
-      logo: logoBase64,
-      theme: themeConfig, // Pass the theme object directly
-      isImage: Boolean(outputPath),
-      // Add line count and content class to template data
-      lineCount: lineInfo.count,
-      contentClass: lineInfo.contentClass,
-      // Add font size variables
-      fontSizes: fontSizes,
-      tagTextColor: tagTextColor // Pass calculated tag text color
-    };
-
-    console.log('Template data:', templateData);
-    const html = template(templateData);
-    await page.setContent(html);
-    console.log('Template rendered');
-
-    // Check if the specified font is available
-    const fontAvailable = await checkFontAvailability(page, themeConfig.fontFamily);
-    if (!fontAvailable) {
-      const errorMessage = `Error: The specified font '${themeConfig.fontFamily}' is not available.`;
-      console.error(errorMessage);
-
-      // If strict style is enabled, throw an error
-      if (strictStyle === true || String(strictStyle).toLowerCase() === 'true') { // Handle boolean or string 'true'
-        await browser.close();
-        throw new Error(errorMessage);
-      } else {
-        console.warn(`Warning: Continuing with fallback fonts because STRICT_STYLE is not enabled.`);
-      }
-    } else {
-      console.log(`Font '${themeConfig.fontFamily}' is available and will be used.`);
-    }
-
-    if (debug === true || String(debug).toLowerCase() === 'true') {
-      const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
-      await fs.writeFile(htmlPath, html);
-      console.log('Debug HTML saved to:', htmlPath);
-    }
-
-    // Ensure outputPath is provided before taking screenshot
-    if (outputPath) {
-      console.log('Taking screenshot to:', outputPath);
-      await page.screenshot({ path: outputPath });
-      console.log('Screenshot taken');
-    } else {
-      console.warn('Warning: No outputPath provided, skipping screenshot.')
-    }
-
-    await browser.close();
-    console.log('Browser closed');
-  } catch (error) {
-    if (browser) {
-      await browser.close();
-    }
-    console.error('Error generating image:', error);
-    process.exit(1);
-  }
-}
-
 // Main function to run when the script is executed directly
 async function main() {
   try {
@@ -511,7 +497,7 @@ async function main() {
     });
 
     // Generate the image
-    await generateImage({
+    await generateImage(
       version,
       body,
       repoUrl,
@@ -522,7 +508,7 @@ async function main() {
       projectName,
       projectDescription,
       strictStyle
-    });
+    );
 
     console.log('Image generation complete!');
   } catch (error) {
