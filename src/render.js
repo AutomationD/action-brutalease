@@ -4,6 +4,7 @@ import { dirname, join } from 'path';
 import { promises as fs } from 'fs';
 import Handlebars from "handlebars";
 import { marked } from 'marked';
+import yaml from 'js-yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,21 +15,44 @@ marked.setOptions({
   mangle: false
 });
 
-// https://colorkit.co/color-palette-generator/009DFF-ffac00-000000-ffffff-f5f5f5-FFE3D3/
-const themes = {
-  default: {
-    bgOne: '#009DFF',
-    bgTwo: '#ffffff',
-    bgThree: '#f5f5f5',
-    accentOne: '#ffac00',
-    accentOneRgb: '255, 172, 0', // RGB values for the accent color
-    accentTwo: '#FFE3D3',
-    accentThree: '#888',
-    accentThreeRgb: '136, 136, 136', // RGB values for accent-three
-    text: '#000000',
-    fontFamily: 'Roboto'
-  }
+// Define default theme values directly
+const defaultTheme = {
+  bgOne: '#009DFF',
+  bgTwo: '#ffffff',
+  bgThree: '#f5f5f5',
+  accentOne: '#ffac00',
+  accentTwo: '#FFE3D3',
+  accentThree: '#888',
+  text: '#000000',
+  shadowColor: '#000000', // Solid black default shadow
+  borderColor: '#000000', // Solid black default border
+  fontFamily: 'Roboto'
 };
+
+// New function to parse theme input and merge with defaults
+function parseAndMergeTheme(themeInput) {
+  let userTheme = {};
+  if (themeInput && typeof themeInput === 'string' && themeInput.trim() !== '') {
+    try {
+      const parsedTheme = yaml.load(themeInput);
+      if (typeof parsedTheme === 'object' && parsedTheme !== null) {
+        userTheme = parsedTheme;
+        console.log("Parsed user theme:", userTheme);
+      } else {
+        console.warn("Theme input was provided but is not valid YAML object. Using default theme.");
+      }
+    } catch (e) {
+      console.warn(`Failed to parse theme YAML: ${e.message}. Using default theme.`);
+    }
+  } else {
+    console.log("No theme input provided or input is empty. Using default theme.");
+  }
+
+  // Merge user theme with default theme
+  const theme = { ...defaultTheme, ...userTheme };
+  console.log("Final merged theme:", theme);
+  return theme;
+}
 
 // Function to estimate line count from markdown
 function estimateLineCount(markdown) {
@@ -323,97 +347,139 @@ async function checkFontAvailability(page, fontFamily) {
   return isFontAvailable.isAvailable;
 }
 
-async function generateImage(version, body, repoUrl, outputPath, logo, debug, theme, projectName, projectDescription, strictStyle) {
-  const browser = await chromium.launch({ headless: true });
-
-  console.log('Starting generateImage with:', { version, body, repoUrl, outputPath, logo, debug, theme, projectDescription, strictStyle });
-
-  console.log('Release body content including newline characters:');
-  console.log(body.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
-
-  // Process markdown to shorten links before rendering and line estimation
-  body = shortenMarkdownLinks(body);
-
-  const page = await browser.newPage();
-  await page.setViewportSize({ width: 1000, height: 500 });
-
-  const templatePath = join(__dirname, 'templates', 'default.html.hbs');
-  console.log('Template path:', templatePath);
-
-  const templateSource = await fs.readFile(templatePath, 'utf8');
-  console.log('Template content length:', templateSource.length);
-  console.log('Template first 100 chars:', templateSource.substring(0, 100));
-  console.log('Template includes new structure:', templateSource.includes('data-line-count="{{lineCount}}"'));
-  console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
-  const template = Handlebars.compile(templateSource);
-
-  // Calculate line count before rendering
-  const lineInfo = estimateLineCount(body);
-  console.log('Estimated line count:', lineInfo);
-
-  // Calculate font sizes based on content density
-  const fontSizes = calculateFontSizes(lineInfo.count);
-  console.log('Calculated font sizes:', fontSizes);
-
-  let description = marked(body);
-  description = insertLineBreaksForSubItems(description);
-  const logoBase64 = logo ? await getBase64Logo(logo) : null;
-  const repoName = getRepoName(repoUrl);
-
-  // Get the theme configuration
-  const themeConfig = themes[theme] || themes.default;
-
-  const templateData = {
+// Refactor generateImage to accept a single options object
+async function generateImage(options) {
+  // Destructure options with default values where appropriate
+  const {
     version,
-    description,
+    body,
     repoUrl,
-    repoName,
-    projectName,
-    projectDescription,
-    logo: logoBase64,
-    theme: themeConfig,
-    isImage: Boolean(outputPath),
-    // Add line count and content class to template data
-    lineCount: lineInfo.count,
-    contentClass: lineInfo.contentClass,
-    // Add font size variables
-    fontSizes: fontSizes
-  };
+    outputPath,
+    logo = null,
+    debug = false,
+    themeInput = '',
+    projectName = '',
+    projectDescription = '',
+    strictStyle = false
+  } = options;
 
-  console.log('Template data:', templateData);
-  const html = template(templateData);
-  await page.setContent(html);
-  console.log('Template rendered');
+  let browser = null;
+  try {
+    // Parse theme input and merge with defaults using the new function
+    const theme = parseAndMergeTheme(themeInput);
 
-  // Check if the specified font is available
-  const fontAvailable = await checkFontAvailability(page, themeConfig.fontFamily);
-  if (!fontAvailable) {
-    const errorMessage = `Error: The specified font '${themeConfig.fontFamily}' is not available.`;
-    console.error(errorMessage);
+    browser = await chromium.launch({ headless: true });
 
-    // If strict style is enabled, throw an error
-    if (strictStyle === 'true') {
-      await browser.close();
-      throw new Error(errorMessage);
+    // Log the destructured options instead of the original arguments
+    console.log('Starting generateImage with options:', { version, body, repoUrl, outputPath, logo, debug, themeInput, projectName, projectDescription, strictStyle });
+
+    // Ensure body is a string before attempting replace
+    const bodyString = typeof body === 'string' ? body : '';
+    console.log('Release body content including newline characters:');
+    console.log(bodyString.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
+
+    // Process markdown to shorten links before rendering and line estimation
+    const processedBody = shortenMarkdownLinks(bodyString);
+
+    const page = await browser.newPage();
+    await page.setViewportSize({ width: 1000, height: 500 });
+
+    const templatePath = join(__dirname, 'templates', 'default.html.hbs');
+    console.log('Template path:', templatePath);
+
+    const templateSource = await fs.readFile(templatePath, 'utf8');
+    console.log('Template content length:', templateSource.length);
+    console.log('Template first 100 chars:', templateSource.substring(0, 100));
+    console.log('Template includes new structure:', templateSource.includes('data-line-count="{{lineCount}}"'));
+    console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
+    const template = Handlebars.compile(templateSource);
+
+    // Calculate line count before rendering
+    const lineInfo = estimateLineCount(processedBody);
+    console.log('Estimated line count:', lineInfo);
+
+    // Calculate font sizes based on content density
+    const fontSizes = calculateFontSizes(lineInfo.count);
+    console.log('Calculated font sizes:', fontSizes);
+
+    let description = marked(processedBody);
+    description = insertLineBreaksForSubItems(description);
+    const logoBase64 = logo ? await getBase64Logo(logo) : null;
+    const repoName = getRepoName(repoUrl);
+
+    // Determine Project Name
+    const finalProjectName = projectName || getRepoName(repoUrl);
+
+    // Get the theme configuration
+    const themeConfig = theme;
+
+    // Calculate contrast text color for the tag
+    const tagTextColor = getContrastTextColor(themeConfig.accentOne);
+
+    const templateData = {
+      version,
+      description,
+      repoUrl,
+      repoName,
+      projectName: finalProjectName, // Use determined project name
+      projectDescription,
+      logo: logoBase64,
+      theme: themeConfig, // Pass the theme object directly
+      isImage: Boolean(outputPath),
+      // Add line count and content class to template data
+      lineCount: lineInfo.count,
+      contentClass: lineInfo.contentClass,
+      // Add font size variables
+      fontSizes: fontSizes,
+      tagTextColor: tagTextColor // Pass calculated tag text color
+    };
+
+    console.log('Template data:', templateData);
+    const html = template(templateData);
+    await page.setContent(html);
+    console.log('Template rendered');
+
+    // Check if the specified font is available
+    const fontAvailable = await checkFontAvailability(page, themeConfig.fontFamily);
+    if (!fontAvailable) {
+      const errorMessage = `Error: The specified font '${themeConfig.fontFamily}' is not available.`;
+      console.error(errorMessage);
+
+      // If strict style is enabled, throw an error
+      if (strictStyle === true || String(strictStyle).toLowerCase() === 'true') { // Handle boolean or string 'true'
+        await browser.close();
+        throw new Error(errorMessage);
+      } else {
+        console.warn(`Warning: Continuing with fallback fonts because STRICT_STYLE is not enabled.`);
+      }
     } else {
-      console.warn(`Warning: Continuing with fallback fonts because STRICT_STYLE is not enabled.`);
+      console.log(`Font '${themeConfig.fontFamily}' is available and will be used.`);
     }
-  } else {
-    console.log(`Font '${themeConfig.fontFamily}' is available and will be used.`);
+
+    if (debug === true || String(debug).toLowerCase() === 'true') {
+      const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
+      await fs.writeFile(htmlPath, html);
+      console.log('Debug HTML saved to:', htmlPath);
+    }
+
+    // Ensure outputPath is provided before taking screenshot
+    if (outputPath) {
+      console.log('Taking screenshot to:', outputPath);
+      await page.screenshot({ path: outputPath });
+      console.log('Screenshot taken');
+    } else {
+      console.warn('Warning: No outputPath provided, skipping screenshot.')
+    }
+
+    await browser.close();
+    console.log('Browser closed');
+  } catch (error) {
+    if (browser) {
+      await browser.close();
+    }
+    console.error('Error generating image:', error);
+    process.exit(1);
   }
-
-  if (debug === 'true') {
-    const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
-    await fs.writeFile(htmlPath, html);
-    console.log('Debug HTML saved to:', htmlPath);
-  }
-
-  console.log('Taking screenshot to:', outputPath);
-  await page.screenshot({ path: outputPath });
-  console.log('Screenshot taken');
-
-  await browser.close();
-  console.log('Browser closed');
 }
 
 // Main function to run when the script is executed directly
@@ -426,7 +492,7 @@ async function main() {
     const outputPath = process.env.INPUT_OUTPUT;
     const logo = process.env.INPUT_LOGO || null;
     const debug = process.env.INPUT_DEBUG;
-    const theme = process.env.INPUT_THEME;
+    const themeInput = process.env.INPUT_THEME;
     const projectName = process.env.INPUT_PROJECT_NAME || getRepoName(repoUrl);
     const projectDescription = process.env.INPUT_PROJECT_DESCRIPTION;
     const strictStyle = process.env.INPUT_STRICT_STYLE;
@@ -438,25 +504,25 @@ async function main() {
       outputPath,
       logo,
       debug,
-      theme,
+      themeInput,
       projectName,
       projectDescription,
       strictStyle
     });
 
     // Generate the image
-    await generateImage(
+    await generateImage({
       version,
       body,
       repoUrl,
       outputPath,
       logo,
       debug,
-      theme,
+      themeInput,
       projectName,
       projectDescription,
       strictStyle
-    );
+    });
 
     console.log('Image generation complete!');
   } catch (error) {
@@ -465,10 +531,74 @@ async function main() {
   }
 }
 
-// Export the generateImage function, estimateLineCount function and the main function
-export { generateImage, estimateLineCount, main };
+// Export the new function and the main generation function
+export { parseAndMergeTheme, generateImage };
 
 // Run the main function if this script is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   main().catch(console.error);
 }
+
+// --- Contrast Calculation Helpers ---
+
+/**
+ * Converts a HEX color value to RGB.
+ * Source: https://stackoverflow.com/a/5624139/3299741
+ */
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
+}
+
+/**
+ * Calculates the relative luminance of an RGB color.
+ * Formula: https://www.w3.org/TR/WCAG20/#relativeluminancedef
+ */
+function getLuminance(rgb) {
+  const a = [rgb.r, rgb.g, rgb.b].map(function (v) {
+    v /= 255;
+    return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+/**
+ * Calculates the contrast ratio between two luminances.
+ * Formula: https://www.w3.org/TR/WCAG20/#contrast-ratiodef
+ */
+function getContrastRatio(lum1, lum2) {
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * Determines the best contrast text color (black or white) for a given background color.
+ * @param {string} backgroundColorHex - Background color in HEX format (e.g., '#RRGGBB').
+ * @returns {string} '#000000' or '#FFFFFF'
+ */
+function getContrastTextColor(backgroundColorHex) {
+  const backgroundRgb = hexToRgb(backgroundColorHex);
+  if (!backgroundRgb) {
+    console.warn(`Invalid background color format: ${backgroundColorHex}. Defaulting to black text.`);
+    return '#000000'; // Fallback for invalid hex
+  }
+  const backgroundLuminance = getLuminance(backgroundRgb);
+
+  // Luminance of white and black
+  const whiteLuminance = 1;
+  const blackLuminance = 0;
+
+  // Contrast ratio with white and black
+  const contrastWithWhite = getContrastRatio(backgroundLuminance, whiteLuminance);
+  const contrastWithBlack = getContrastRatio(backgroundLuminance, blackLuminance);
+
+  // Return the color (black or white) that provides better contrast
+  return contrastWithWhite > contrastWithBlack ? '#FFFFFF' : '#000000';
+}
+
+// --- End Contrast Calculation Helpers ---

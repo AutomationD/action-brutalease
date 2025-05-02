@@ -13,11 +13,10 @@
             --main-bg: {{theme.bgOne}};
             --secondary-bg: {{theme.bgTwo}};
             --accent-one: {{theme.accentOne}};
-            --accent-one-rgb: {{theme.accentOneRgb}};
             --accent-three: {{theme.accentThree}};
-            --accent-three-rgb: {{theme.accentThreeRgb}};
             --text-color: {{theme.text}};
-
+            --border-color: {{theme.borderColor}};
+            --shadow-color: {{theme.shadowColor}};
             /* layout */
             --viewport-width: 1000px;
             --viewport-height: 500px;
@@ -34,7 +33,7 @@
             --font-heading: {{fontSizes.titleFontSize}}px;
             --font-list: {{fontSizes.listItemFontSize}}px;
             --font-line-height: {{fontSizes.lineHeight}};
-            --font-family: '{{theme.fontFamily}}'
+            --font-family: '{{theme.fontFamily}}', sans-serif;
         }
 
         /* reset */
@@ -73,8 +72,8 @@
 
         .header-box {
             background: var(--secondary-bg);
-            border: var(--border-size) solid var(--text-color);
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            border: var(--border-size) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--shadow-color);
             padding: var(--panel-padding);
             display: flex;
             align-items: center; /* Center items vertically */
@@ -140,8 +139,8 @@
         }
         .list-box {
             background: var(--secondary-bg);
-            border: var(--border-size) solid var(--text-color);
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            border: var(--border-size) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--shadow-color);
             padding: var(--panel-padding); /* Reset to standard padding */
 
             position: relative;
@@ -228,6 +227,7 @@
             padding-left: 1rem; /* Even less indent for deeply nested lists */
         }
         .list-box li {
+            color: var(--text-color); /* Ensure list items inherit text color */
             font-size: var(--font-list);
             line-height: var(--font-line-height);
         }
@@ -283,13 +283,13 @@
             font-size: 0.9em;
             position: relative;
             padding: 0 0.1rem;
-            background-color: rgba(var(--accent-three-rgb), 0.08);
+            background-color: {{theme.accentThree}}14; /* Hex + alpha for ~8% opacity */
             border-bottom: 1px dotted var(--accent-three);
             transition: background-color 0.2s, transform 0.1s;
         }
 
         .list-box a:hover {
-            background-color: rgba(var(--accent-three-rgb), 0.15);
+            background-color: {{theme.accentThree}}26; /* Hex + alpha for ~15% opacity */
             transform: translateY(-1px);
         }
 
@@ -299,13 +299,16 @@
 
         .tag {
             position: absolute;
+            /* Use calculated contrast color for tag text */
+            color: {{tagTextColor}};
+            /* Positioning using calc and variables */
             bottom: 1.2rem; /* Position at the bottom */
             right: 1.2rem; /* Keep the same right position */
             background: var(--accent-one);
             padding: 0.4rem 0.9rem; /* Reduced padding to make the tag smaller */
 
-            border: var(--border-size) solid var(--text-color);
-            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--text-color);
+            border: var(--border-size) solid var(--border-color);
+            box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--shadow-color);
             transform: rotate(var(--tag-rotation));
             font-size: calc(var(--font-list) * 0.9); /* Reduced font size to make text smaller */
             font-weight: bold;

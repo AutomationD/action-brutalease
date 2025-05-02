@@ -63,6 +63,7 @@ const testBodies = [
   }
 ];
 
+
 describe('render.js', () => {
   // Ensure results directory exists before tests run
   before(async () => {
@@ -137,6 +138,43 @@ describe('render.js', () => {
     } else {
       console.log('Skipping image content verification (no OpenAI API key)');
     }
+  });
+
+  it('must parse yaml theme string and merge with defaults', async () => {
+    // Define custom theme as a YAML string, providing all parameters
+    const customThemeYaml = `
+      bgOne: '#1a1a1a'       # Dark background 1
+      bgTwo: '#2a2a2a'       # Dark background 2
+      bgThree: '#3a3a3a'     # Dark background 3
+      accentOne: '#ff5722'    # Custom accent 1 (Orange)
+      accentTwo: '#00bcd4'    # Custom accent 2 (Cyan)
+      accentThree: '#e0e0e0' # Custom accent 3 (Light Gray)
+      text: '#f5f5f5'      # Light text
+      fontFamily: '"Courier New", Courier, monospace' # Different font
+    `;
+
+    // Import the theme parsing function
+    const { parseAndMergeTheme } = await import('../src/render.js');
+
+    // Call the function with the YAML input
+    const mergedTheme = parseAndMergeTheme(customThemeYaml);
+
+    // Define the expected merged theme object
+    const expectedTheme = {
+      bgOne: '#1a1a1a',
+      bgTwo: '#2a2a2a',
+      bgThree: '#3a3a3a',
+      accentOne: '#ff5722',
+      accentTwo: '#00bcd4',
+      accentThree: '#e0e0e0',
+      text: '#f5f5f5',
+      fontFamily: '"Courier New", Courier, monospace'
+    };
+
+    // Assert that the merged theme matches the expected object
+    assert.deepStrictEqual(mergedTheme, expectedTheme, 'Merged theme should match the expected object');
+
+    console.log('Successfully parsed YAML theme and merged with defaults.');
   });
 
   it('should scale text properly with sufficient bottom spacing', async () => {

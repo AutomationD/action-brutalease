@@ -109,6 +109,15 @@ jobs:
           project_name: Brutalease
           project_description: Neo-brutalist release banner
           logo: ${{ github.workspace }}/test/data/logo.png
+          theme: |
+            bgOne: '#009DFF'
+            bgTwo: '#ffffff'
+            bgThree: '#f5f5f5'
+            accentOne: '#ffac00'
+            accentTwo: '#FFE3D3'
+            accentThree: '#888'
+            text: '#000000'
+            fontFamily: 'Roboto'
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

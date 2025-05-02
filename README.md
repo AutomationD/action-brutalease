@@ -1,7 +1,7 @@
 # NEO-BRUTALIST RELEASE BANNER GENERATOR
 
 ![Tests](https://github.com/automationd/action-brutalese/actions/workflows/test.yml/badge.svg)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/automationd/action-brutalese)
+![GitHub release (latest by date)](https://img.shields.io/github/v-release/automationd/action-brutalese)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **MAKE YOUR RELEASES BOLD. UNAPOLOGETIC. MEMORABLE.**
@@ -24,6 +24,20 @@ Neo-Brutalism is characterized by:
 - **AUTOMATE DESIGN**: No design skills needed - the action handles everything
 - **CONSISTENT BRANDING**: Maintain a cohesive visual identity across all releases
 - **CUSTOMIZABLE**: Adapt colors, logos, and styling to match your project's personality
+
+## THEMES
+
+This action comes with several built-in themes. Here's an example:
+
+**Mist On Old Canvas**
+
+![Mist On Old Canvas Theme Preview](./themes/mist_on_old_canvas.png)
+
+**Afternoon Peach Curtains**
+
+![Afternoon Peach Curtains Theme Preview](./themes/afternoon_peach_curtains.png)
+
+[Explore more themes and customization options](./themes/README.md)
 
 ## USAGE
 
@@ -82,22 +96,22 @@ Or use a major version to automatically get updates within that major version:
 
 ## INPUTS
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `version` | Release version | Yes | - |
-| `body` | Release body text (changelog) | Yes | - |
-| `repo_url` | Repository URL | Yes | - |
-| `project_name` | Project name | No | Repository name |
-| `project_description` | Short description of the project | No | - |
-| `logo` | Logo URL or path to display in the banner | No | - |
-| `theme` | Theme name to use for styling | No | `default` |
-| `output` | Output file path | No | `release.png` |
-| `debug` | Enable debug mode to save HTML output | No | `false` |
-| `strict_style` | If true, will throw an error when fonts or styles are not available | No | `true` |
+| Input               | Description                                                                                         | Required | Default   |
+|---------------------|-----------------------------------------------------------------------------------------------------|----------|-----------|
+| `version`           | Release version                                                                                     | Yes      |           |
+| `body`              | Release body text (changelog)                                                                       | Yes      |           |
+| `repo_url`          | Repository URL                                                                                      | Yes      |           |
+| `project_name`      | Project name (defaults to repository name if not provided)                                          | No       | Repo Name |
+| `project_description` | Short description of the project to display under the project name                                  | No       |           |
+| `theme`             | YAML string defining theme colors (e.g., `"bgOne: #aabbcc\ntext: #112233"`). Missing values use defaults. | No       | Internal Defaults |
+| `logo`              | Logo URL to display in the badge                                                                    | No       |           |
+| `debug`             | Enable debug mode to save HTML output                                                               | No       | `false`   |
+| `strict_style`      | If true, will throw an error when fonts or styles are not available                                 | No       | `true`    |
+| `output`            | Output file path                                                                                    | No       | `release.png`|
 
 ## OUTPUTS
 
-The action generates a PNG image at the specified output path (defaults to `release.png`).
+None directly, but generates an image file specified by the `output` input.
 
 ## ADVANCED USAGE
 
@@ -133,6 +147,30 @@ Reference your Neo-Brutalist banner in documentation or social media:
 ### SOCIAL MEDIA SHARING
 
 The generated banners are perfectly sized for sharing on platforms like Twitter, LinkedIn, and Discord to announce your releases.
+
+### CUSTOM THEME EXAMPLE
+
+You can customize the theme by providing a YAML multiline string using the `|` character. Missing values will be merged with the default theme. Here's an example:
+
+```yaml
+- name: Generate Banner
+  uses: automationd/action-brutalease@v1 # Use your desired version
+  with:
+    version: ${{ github.ref_name }}
+    body: ${{ github.event.release.body }} # Required: Release notes
+    repo_url: ${{ github.repositoryUrl }}
+    project_description: "My awesome project description" # Optional description
+    # Example: Override specific colors using a YAML multiline string
+    theme: | # Use '|' for a multiline string
+      bgOne: '#333333'
+      text: '#ffffff'
+      accentOne: '#ff5722' # Hex color codes only
+      # ... add other theme parameters as needed
+    # Optionally provide a logo
+    # logo: "https://example.com/logo.png"
+    output: release-banner.png
+```
+
 
 ## CONTRIBUTING
 

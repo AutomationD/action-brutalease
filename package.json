@@ -6,10 +6,12 @@
     "test": "node --test test/render.test.js",
     "test:watch": "node --test --watch test/render.test.js",
     "render": "node src/render.js",
-    "postinstall": "npx playwright install --with-deps"
+    "postinstall": "npx playwright install --with-deps",
+    "generate-themes": "node src/generate-themes.js"
   },
   "dependencies": {
     "handlebars": "^4.7.7",
+    "js-yaml": "^4.1.0",
     "marked": "^12.0.0",
     "playwright": "1.52.0"
   }
