@@ -22,8 +22,8 @@ inputs:
     description: 'Short description of the project to display under the project name'
     required: false
   theme:
-    description: 'Theme name to use for styling (e.g. "default")'
-    default: 'default'
+    description: 'YAML string defining theme colors (e.g., "bgOne: #ff0000\nbgTwo: #ffffff"). Missing values use defaults.'
+    required: false
   logo:
     description: 'Logo URL to display in the badge'
     required: false

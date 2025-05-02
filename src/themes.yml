@@ -1,0 +1,59 @@
+mist_on_old_canvas:
+  bgOne: '#faf7f0'         # off-white cream background
+  bgTwo: '#d8d2c2'         # pale muted beige
+  bgThree: '#b17457'       # soft leather brown
+  accentOne: '#4a4947'     # charcoal gray
+  accentTwo: '#d8d2c2'
+  accentThree: '#faf7f0'
+  text: '#000000'
+  shadowColor: '#000000'
+  borderColor: '#000000'
+  fontFamily: Roboto
+
+afternoon_peach_curtains:
+  bgOne: '#fff7d1'         # pastel vanilla
+  bgTwo: '#ffecc8'         # peach milk
+  bgThree: '#ffd09b'       # soft orange
+  accentOne: '#ffb0b0'     # rose milk
+  accentTwo: '#ffecc8'
+  accentThree: '#fff7d1'
+  text: '#000000'
+  shadowColor: '#000000'
+  borderColor: '#000000'
+  fontFamily: Roboto
+
+autumn_balcony_reflection:
+  bgOne: '#fef9e1'         # parchment yellow
+  bgTwo: '#e5d0ac'         # toasted almond
+  bgThree: '#a31d1d'       # burgundy maple
+  accentOne: '#6d2323'     # plum bark
+  accentTwo: '#e5d0ac'
+  accentThree: '#fef9e1'
+  text: '#000000'
+  shadowColor: '#000000'
+  borderColor: '#000000'
+  fontFamily: Roboto
+
+blush_letter_from_paris:
+  bgOne: '#ffcdb2'         # blush cream
+  bgTwo: '#ffb4a2'         # soft rose
+  bgThree: '#e5989b'       # antique mauve
+  accentOne: '#b5828c'     # dusty pink
+  accentTwo: '#ffb4a2'
+  accentThree: '#ffcdb2'
+  text: '#000000'
+  shadowColor: '#000000'
+  borderColor: '#000000'
+  fontFamily: Roboto
+
+velvet_theatre_drape:
+  bgOne: '#740938'         # royal velvet red
+  bgTwo: '#af1740'         # crimson wine
+  bgThree: '#cc2b52'       # ruby grape
+  accentOne: '#de7c7d'     # soft coral
+  accentTwo: '#af1740'
+  accentThree: '#740938'
+  text: '#FFFFFF'
+  shadowColor: '#000000'
+  borderColor: '#000000'
+  fontFamily: Roboto
