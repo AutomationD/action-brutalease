@@ -1,7 +1,7 @@
 # NEO-BRUTALIST RELEASE BANNER GENERATOR
 
 ![Tests](https://github.com/automationd/action-brutalese/actions/workflows/test.yml/badge.svg)
-![GitHub release (latest by date)](https://img.shields.io/github/v-release/automationd/action-brutalese)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/automationd/action-brutalese)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **MAKE YOUR RELEASES BOLD. UNAPOLOGETIC. MEMORABLE.**
