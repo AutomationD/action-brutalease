@@ -14,10 +14,10 @@ const testBodies = [
   {
     name: "header-li-link",
     content: `## What's Changed
-* Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
+* Update environment variable handling in render.js by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/9
 
 
-**Full Changelog**: https://github.com/AutomationD/action-brutalease/compare/v0.10.4...v0.10.5`
+**Full Changelog**: https://github.com/dimmkirr/action-brutalease/compare/v0.10.4...v0.10.5`
   },
   {
     name: "simple-li",
@@ -29,12 +29,12 @@ const testBodies = [
   {
     name: "medium",
     content: `## What's Changed
-* Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
-* Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
-* Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
+* Update environment variable handling in render.js by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/9
+* Update environment variable handling in render.js by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/9
+* Update environment variable handling in render.js by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/9
 
 
-**Full Changelog**: https://github.com/AutomationD/action-brutalease/compare/v0.10.4...v0.10.5`
+**Full Changelog**: https://github.com/dimmkirr/action-brutalease/compare/v0.10.4...v0.10.5`
   },
   {
     name: "just-one-change",
@@ -44,12 +44,12 @@ const testBodies = [
   {
     name: "long-bottom-line",
     content: `## What's Changed
-* Add neo-brutalist release banner generator by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/1
+* Add neo-brutalist release banner generator by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/1
 
 ## New Contributors
-* @AutomationD made their first contribution in https://github.com/AutomationD/action-brutalease/pull/1
+* @dimmkirr made their first contribution in https://github.com/dimmkirr/action-brutalease/pull/1
 
-**Full Changelog**: https://github.com/AutomationD/action-brutalease/commits/v1.0.0`
+**Full Changelog**: https://github.com/dimmkirr/action-brutalease/commits/v1.0.0`
   }
 ];
 
@@ -93,7 +93,7 @@ describe('render.js', () => {
     // Define input options directly
     const version = 'v1.0.0-test';
     const body = '# Changes\n- Fix Bugs\n- Add Tests 2\n- Vibecode the rest';
-    const repoUrl = 'https://github.com/automationd/action-postrelease';
+    const repoUrl = 'https://github.com/dimmkirr/action-postrelease';
     const projectName = 'Brutalease';
     const projectDescription = 'A beautiful neo-brutalist style release badge generator';
     const themeInput = 'default';
@@ -188,7 +188,7 @@ describe('render.js', () => {
     const version = 'v1.0.0';
     const projectName = 'Brutalease';
     const projectDescription = 'Make your releases look brutalist';
-    const repoUrl = 'https://github.com/AutomationD/action-brutalease';
+    const repoUrl = 'https://github.com/dimmkirr/action-brutalease';
     const debug = true; // Convert string 'true' to boolean
     const themeInput = 'default'; // Renamed from theme
     const strictStyle = false; // Assuming default
@@ -354,7 +354,7 @@ describe('render.js', () => {
     const version = 'v1.0.0';
     const projectName = 'Brutalease';
     const projectDescription = 'Make your releases look brutalist';
-    const repoUrl = 'https://github.com/AutomationD/action-brutalease';
+    const repoUrl = 'https://github.com/dimmkirr/action-brutalease';
     const debug = true;
     const themeInput = 'default'; // Renamed from theme
     const strictStyle = false; // Assuming default
@@ -520,7 +520,7 @@ describe('render.js', () => {
       'https://github.com/test/repo',
       outputPath,
       true, // Debug
-      { logo: '/Users/dmitry/dev/automationd/action-brutalese/test/data/logo.png' }, // Pass logo via theme object
+      { logo: '/Users/dmitry/dev/dimmkirr/action-brutalese/test/data/logo.png' }, // Pass logo via theme object
       'Image Logo Project'
     );
     assert.strictEqual(existsSync(outputPath), true, 'Output file should exist');
