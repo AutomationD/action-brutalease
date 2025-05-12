@@ -3,11 +3,11 @@ vars:
   INPUT_VERSION: v0.10.1
   INPUT_BODY: |
     ## What's Changed
-    * Update environment variable handling in render.js by @AutomationD in https://github.com/AutomationD/action-brutalease/pull/9
+    * Update environment variable handling in render.js by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/9
 
 
-    **Full Changelog**: https://github.com/AutomationD/action-brutalease/compare/v0.10.4...v0.10.5
-  INPUT_REPO_URL: https://github.com/automationd/action-brutalese
+    **Full Changelog**: https://github.com/dimmkirr/action-brutalease/compare/v0.10.4...v0.10.5
+  INPUT_REPO_URL: https://github.com/dimmkirr/action-brutalese
   INPUT_PROJECT_NAME: Brutalease
   INPUT_PROJECT_DESCRIPTION: Neo-brutalist release banner
   INPUT_LOGO: /app/test/data/logo.png

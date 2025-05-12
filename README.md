@@ -48,7 +48,7 @@ Add this action to your release workflow to automatically generate a Neo-Brutali
 ```yaml
 # ...
 - name: Generate Banner
-  uses: automationd/action-brutalease@v1
+  uses: dimmkirr/action-brutalease@v1
   with:
     version: ${{ github.event.release.tag_name }}
     body: ${{ github.event.release.body }}
@@ -76,7 +76,7 @@ You can also use the Docker image directly:
 
 ```bash
 # Replace v1.0.0 with the specific version you want to use
-docker pull ghcr.io/automationd/action-brutalease:v1.0.0
+docker pull ghcr.io/dimmkirr/action-brutalease:v1.0.0
 ```
 
 ### VERSION PINNING
@@ -85,7 +85,7 @@ When using this action in your workflows, you can pin to a specific version:
 
 ```yaml
 - name: Generate Banner
-  uses: automationd/action-brutalease@v1.0.0  # Pin to specific version
+  uses: dimmkirr/action-brutalease@v1.0.0  # Pin to specific version
   with:
     # inputs...
 ```
@@ -94,7 +94,7 @@ Or use a major version to automatically get updates within that major version:
 
 ```yaml
 - name: Generate Banner
-  uses: automationd/action-brutalease@v1  # Use latest v1.x.x
+  uses: dimmkirr/action-brutalease@v1  # Use latest v1.x.x
   with:
     # inputs...
 ```
@@ -160,7 +160,7 @@ You can customize the theme by providing a YAML multiline string using the `|` c
 
 ```yaml
 - name: Generate Banner
-  uses: automationd/action-brutalease@v1 # Use your desired version
+  uses: dimmkirr/action-brutalease@v1 # Use your desired version
   with:
     version: ${{ github.ref_name }}
     body: ${{ github.event.release.body }} # Required: Release notes

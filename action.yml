@@ -40,4 +40,4 @@ inputs:
 
 runs:
   using: 'docker'
-  image: 'docker://ghcr.io/automationd/action-brutalease:v1.0.9'
+  image: 'docker://ghcr.io/dimmkirr/action-brutalease:v1.0.9'
