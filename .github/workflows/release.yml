@@ -108,7 +108,6 @@ jobs:
           output: release-banner.png
           project_name: Brutalease
           project_description: Neo-brutalist release banner
-          logo: ${{ github.workspace }}/test/data/logo.png
           theme: |
             bgOne: '#009DFF'
             bgTwo: '#ffffff'

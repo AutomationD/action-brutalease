@@ -26,23 +26,72 @@ const defaultTheme = {
   text: '#000000',
   shadowColor: '#000000', // Solid black default shadow
   borderColor: '#000000', // Solid black default border
-  fontFamily: 'Roboto'
+  fontFamily: 'Roboto',
+  logo: '⚡'
 };
 
 // Refactor generateImage to accept individual parameters directly
-async function generateImage(version, body, repoUrl, outputPath, logo = null, debug = false, themeInput = '', projectName = '', projectDescription = '', strictStyle = false) {
+async function generateImage(version, body, repoUrl, outputPath, debug = false, themeInput = 'default', projectName = '', projectDescription = '', strictStyle = false) {
   let browser = null;
   try {
-    // Parse theme input and merge with defaults using the new function
+    // Parse and merge the theme first
     const theme = parseAndMergeTheme(themeInput);
+    console.log('Final merged theme:', theme);
+
+    // Extract logo from the theme
+    const logo = theme.logo;
 
     browser = await chromium.launch({ headless: true });
 
     // Log the arguments directly
-    console.log('Starting generateImage with arguments:', { version, body, repoUrl, outputPath, logo, debug, themeInput, projectName, projectDescription, strictStyle });
+    console.log('Starting generateImage with arguments:', { version, body, repoUrl, outputPath, debug, themeInput, projectName, projectDescription, strictStyle });
+
+    // --- Logo Handling Logic ---
+    let logoType = 'none';
+    let logoContent = null;
+
+    if (logo) {
+      const faRegex = /^:fa-(?<type>\w+)\s+fa-(?<name>[\w-]+):$/;
+
+      if (typeof logo === 'string' && logo.startsWith(':fa-') && logo.endsWith(':')) {
+        logoType = 'fontawesome';
+        logoContent = logo.substring(1, logo.length - 1); // Remove leading/trailing colons
+        console.log('Logo identified as Font Awesome icon:', logoContent);
+      } else if (typeof logo === 'string' && logo.length === 1 || (logo.length === 2 && /\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDE4F]|\uD83D[\uDE80-\uDEFF]/.test(logo))) { // Basic emoji check (single char or common surrogate pairs)
+        logoType = 'emoji';
+        logoContent = logo;
+        console.log('Logo identified as Emoji:', logoContent);
+      } else if (typeof logo === 'string') { // Assume it's a path, try to get base64
+        try {
+          // Check if it looks like a path (basic check)
+          if (logo.includes('/') || logo.includes('\\')) {
+            const imageBuffer = await fs.readFile(logo);
+            logoContent = `data:image/${logo.substring(logo.lastIndexOf('.') + 1)};base64,${imageBuffer.toString('base64')}`;
+            logoType = 'image';
+            console.log('Logo identified as Image Path, successfully converted to base64.');
+          } else {
+            console.log(`Logo string "${logo}" doesn't look like a path and isn't a known type. Treating as no logo.`);
+            logoType = 'none';
+            logoContent = null;
+          }
+        } catch (error) {
+          console.error(`Error reading logo file at ${logo}:`, error);
+          // Fallback or decide how to handle error - for now, just no logo
+          logoType = 'none';
+          logoContent = null;
+        }
+      }
+    } else {
+      // If logo is null, undefined, or empty string from theme, treat as no logo
+      logoType = 'none';
+      logoContent = null;
+      console.log('No logo specified in theme or logo is empty.');
+    }
+    // --- End Logo Handling ---
 
     // Ensure body is a string before attempting replace
     const bodyString = typeof body === 'string' ? body : '';
+
     console.log('Release body content including newline characters:');
     console.log(bodyString.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
 
@@ -62,6 +111,11 @@ async function generateImage(version, body, repoUrl, outputPath, logo = null, de
     console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
     const template = Handlebars.compile(templateSource);
 
+    // Register 'eq' helper for Handlebars
+    Handlebars.registerHelper('eq', function (a, b) {
+      return a === b;
+    });
+
     // Calculate line count before rendering
     const lineInfo = estimateLineCount(processedBody);
     console.log('Estimated line count:', lineInfo);
@@ -72,7 +126,6 @@ async function generateImage(version, body, repoUrl, outputPath, logo = null, de
 
     let description = marked(processedBody);
     description = insertLineBreaksForSubItems(description);
-    const logoBase64 = logo ? await getBase64Logo(logo) : null;
     const repoName = getRepoName(repoUrl);
 
     // Determine Project Name
@@ -89,17 +142,18 @@ async function generateImage(version, body, repoUrl, outputPath, logo = null, de
       description,
       repoUrl,
       repoName,
-      projectName: finalProjectName, // Use determined project name
+      projectName: finalProjectName,
       projectDescription,
-      logo: logoBase64,
-      theme: themeConfig, // Pass the theme object directly
+      // Pass logo type and content instead of raw logo path/base64
+      logoType: logoType,
+      logoContent: logoContent,
+      theme: themeConfig,
       isImage: Boolean(outputPath),
       // Add line count and content class to template data
       lineCount: lineInfo.count,
       contentClass: lineInfo.contentClass,
-      // Add font size variables
       fontSizes: fontSizes,
-      tagTextColor: tagTextColor // Pass calculated tag text color
+      tagTextColor: tagTextColor
     };
 
     console.log('Template data:', templateData);
@@ -165,6 +219,8 @@ function parseAndMergeTheme(themeInput) {
     } catch (e) {
       console.warn(`Failed to parse theme YAML: ${e.message}. Using default theme.`);
     }
+  } else if (themeInput && typeof themeInput === 'object') {
+    userTheme = themeInput;
   } else {
     console.log("No theme input provided or input is empty. Using default theme.");
   }
@@ -476,7 +532,6 @@ async function main() {
     const body = process.env.INPUT_BODY;
     const repoUrl = process.env.INPUT_REPO_URL;
     const outputPath = process.env.INPUT_OUTPUT;
-    const logo = process.env.INPUT_LOGO || null;
     const debug = process.env.INPUT_DEBUG;
     const themeInput = process.env.INPUT_THEME;
     const projectName = process.env.INPUT_PROJECT_NAME || getRepoName(repoUrl);
@@ -488,7 +543,6 @@ async function main() {
       body: body.substring(0, 100) + (body.length > 100 ? '...' : ''),
       repoUrl,
       outputPath,
-      logo,
       debug,
       themeInput,
       projectName,
@@ -502,7 +556,6 @@ async function main() {
       body,
       repoUrl,
       outputPath,
-      logo,
       debug,
       themeInput,
       projectName,

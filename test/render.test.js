@@ -8,7 +8,6 @@ import {chromium} from 'playwright';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const resultsDir = join(__dirname, 'results');
 const outputFile = join(resultsDir, 'test-release.png');
-const logoPath = join(__dirname, 'data', 'logo.png');
 
 // Global test bodies for all tests
 const testBodies = [
@@ -98,8 +97,6 @@ describe('render.js', () => {
     const projectName = 'Brutalease';
     const projectDescription = 'A beautiful neo-brutalist style release badge generator';
     const themeInput = 'default';
-    const logo = logoPath;
-    const outputPath = outputFile;
     const debug = true;
     // Assuming strictStyle defaults to false if not specified
 
@@ -113,15 +110,14 @@ describe('render.js', () => {
       'Post-Release Badge' // This might need updating based on actual project name used
     ];
 
-    // Generate the image by calling generateImage directly with individual arguments
+    // Call the generateImage function with necessary parameters
     await generateImage(
       version,
       body,
       repoUrl,
-      outputPath,
-      logo,
+      outputFile,
       debug,
-      themeInput,
+      themeInput, // Pass theme name
       projectName,
       projectDescription
       // strictStyle (optional, defaults to false in function signature)
@@ -145,7 +141,7 @@ describe('render.js', () => {
   });
 
   it('must parse yaml theme string and merge with defaults', async () => {
-    // Define custom theme as a YAML string, providing all parameters
+    // Define custom theme as a YAML string, providing all parameters *except logo*
     const customThemeYaml = `
       bgOne: '#1a1a1a'       # Dark background 1
       bgTwo: '#2a2a2a'       # Dark background 2
@@ -174,7 +170,8 @@ describe('render.js', () => {
       shadowColor: '#000000', // Solid black default shadow
       borderColor: '#000000', // Solid black default border
       text: '#000000',
-      fontFamily: 'Roboto'
+      fontFamily: 'Roboto',
+      logo: '⚡' // Default logo expected when not provided
     };
 
     // Assert that the merged theme matches the expected object
@@ -192,7 +189,6 @@ describe('render.js', () => {
     const projectName = 'Brutalease';
     const projectDescription = 'Make your releases look brutalist';
     const repoUrl = 'https://github.com/AutomationD/action-brutalease';
-    const logo = null;
     const debug = true; // Convert string 'true' to boolean
     const themeInput = 'default'; // Renamed from theme
     const strictStyle = false; // Assuming default
@@ -221,7 +217,6 @@ describe('render.js', () => {
         testContent,
         repoUrl,
         outputPath,
-        logo,
         debug,
         themeInput,
         projectName,
@@ -360,7 +355,6 @@ describe('render.js', () => {
     const projectName = 'Brutalease';
     const projectDescription = 'Make your releases look brutalist';
     const repoUrl = 'https://github.com/AutomationD/action-brutalease';
-    const logo = null;
     const debug = true;
     const themeInput = 'default'; // Renamed from theme
     const strictStyle = false; // Assuming default
@@ -380,7 +374,6 @@ describe('render.js', () => {
         testBody.content,
         repoUrl,
         outputPath,
-        logo,
         debug,
         themeInput,
         projectName,
@@ -515,6 +508,172 @@ describe('render.js', () => {
       }, null, 2)
     );
     console.log(`Tag overlap test results summary saved to: ${summaryPath}`);
+  });
+
+  // Test for Image logo
+  it('should render image logo', async () => {
+    const { generateImage } = await import('../src/render.js');
+    const outputPath = join(resultsDir, 'test-image-logo.png');
+    await generateImage(
+      'v1.1.0-image',
+      'Using image logo',
+      'https://github.com/test/repo',
+      outputPath,
+      true, // Debug
+      { logo: '/Users/dmitry/dev/automationd/action-brutalese/test/data/logo.png' }, // Pass logo via theme object
+      'Image Logo Project'
+    );
+    assert.strictEqual(existsSync(outputPath), true, 'Output file should exist');
+    // Optional: Add visual regression or specific element checks if needed
+  });
+
+  // Test for Font Awesome logo
+  it('should render Font Awesome icon as logo', async () => {
+    const { generateImage } = await import('../src/render.js');
+    const faOutputPath = join(resultsDir, 'test-fa-logo.png');
+    await generateImage(
+      'v1.1.0-fa',
+      'Using Font Awesome logo',
+      'https://github.com/test/repo',
+      faOutputPath,
+      true, // Debug
+      { logo: ':fa-solid fa-star:' }, // Pass FA logo via theme object
+      'FA Test Project'
+    );
+    assert.strictEqual(existsSync(faOutputPath), true, 'Output file for Font Awesome logo should exist');
+    // Optional: Add visual regression or specific element checks if needed
+  });
+
+  // Test for Emoji logo
+  it('should render Emoji as logo', async () => {
+    const { generateImage } = await import('../src/render.js');
+    const emojiOutputPath = join(resultsDir, 'test-emoji-logo.png');
+    await generateImage(
+      'v1.1.0-emoji',
+      'Using Emoji logo',
+      'https://github.com/test/repo',
+      emojiOutputPath,
+      true, // Debug
+      { logo: '🚀' }, // Pass emoji logo via theme object
+      'Emoji Test Project'
+    );
+    assert.strictEqual(existsSync(emojiOutputPath), true, 'Output file for Emoji logo should exist');
+    // Optional: Add visual regression or specific element checks if needed
+  });
+
+  // Test for Null logo
+  it('should render default logo when logo is null', async () => {
+    const { generateImage } = await import('../src/render.js');
+    const nullOutputPath = join(resultsDir, 'test-null-logo.png');
+    await generateImage(
+      'v1.1.0-null',
+      'Using null logo',
+      'https://github.com/test/repo',
+      nullOutputPath,
+      true, // Debug
+      { logo: null }, // Pass logo: null via theme to test default
+      'Null Logo Project'
+    );
+    assert.strictEqual(existsSync(nullOutputPath), true, 'Output file should exist');
+    // Optional: Add visual regression or specific element checks if needed
+  });
+
+  // Test for Empty logo string
+  it('should render no logo when theme logo is empty string', async () => {
+    const { generateImage } = await import('../src/render.js');
+    const emptyLogoOutputPath = join(resultsDir, 'test-empty-logo.png');
+    await generateImage(
+      'v1.1.0-empty',
+      'Using empty string logo',
+      'https://github.com/test/repo',
+      emptyLogoOutputPath,
+      true, // Debug
+      { logo: '' }, // Pass empty string logo via theme object
+      'Empty Logo Test Project'
+    );
+    assert.strictEqual(existsSync(emptyLogoOutputPath), true, 'Output file for Empty logo should exist');
+    // Here you might add a check to ensure the logo element is NOT present in the output HTML
+  });
+
+  it('must parse yaml theme string and merge with defaults', async () => {
+    // Define custom theme as a YAML string, providing all parameters *except logo*
+    const customThemeYaml = `
+      bgOne: '#1a1a1a'       # Dark background 1
+      bgTwo: '#2a2a2a'       # Dark background 2
+      bgThree: '#3a3a3a'     # Dark background 3
+      accentOne: '#ff5722'    # Custom accent 1 (Orange)
+      accentTwo: '#00bcd4'    # Custom accent 2 (Cyan)
+      accentThree: '#e0e0e0' # Custom accent 3 (Light Gray)
+      text: '#000000'      # Light text
+      fontFamily: 'Roboto' # Custom font
+    `;
+
+    // Import the theme parsing function
+    const {parseAndMergeTheme} = await import('../src/render.js');
+
+    // Call the function with the YAML input
+    const mergedTheme = parseAndMergeTheme(customThemeYaml);
+
+    // Define the expected merged theme object
+    const expectedTheme = {
+      bgOne: '#1a1a1a',
+      bgTwo: '#2a2a2a',
+      bgThree: '#3a3a3a',
+      accentOne: '#ff5722',
+      accentTwo: '#00bcd4',
+      accentThree: '#e0e0e0',
+      shadowColor: '#000000', // Solid black default shadow
+      borderColor: '#000000', // Solid black default border
+      text: '#000000',
+      fontFamily: 'Roboto',
+      logo: '⚡' // Default logo expected when not provided
+    };
+
+    // Assert that the merged theme matches the expected object
+    assert.deepStrictEqual(mergedTheme, expectedTheme, 'Merged theme should match the expected object');
+
+    console.log('Successfully parsed YAML theme and merged with defaults.');
+  });
+
+  it('must parse yaml theme string and merge with defaults with logo', async () => {
+    // Define custom theme as a YAML string, providing all parameters
+    const customThemeYaml = `
+      bgOne: '#1a1a1a'       # Dark background 1
+      bgTwo: '#2a2a2a'       # Dark background 2
+      bgThree: '#3a3a3a'     # Dark background 3
+      accentOne: '#ff5722'    # Custom accent 1 (Orange)
+      accentTwo: '#00bcd4'    # Custom accent 2 (Cyan)
+      accentThree: '#e0e0e0' # Custom accent 3 (Light Gray)
+      text: '#000000'      # Light text
+      fontFamily: 'Roboto' # Custom font
+      logo: '🎨' # Specific logo provided in YAML
+    `;
+
+    // Import the theme parsing function
+    const {parseAndMergeTheme} = await import('../src/render.js');
+
+    // Call the function with the YAML input
+    const mergedTheme = parseAndMergeTheme(customThemeYaml);
+
+    // Define the expected merged theme object
+    const expectedTheme = {
+      bgOne: '#1a1a1a',
+      bgTwo: '#2a2a2a',
+      bgThree: '#3a3a3a',
+      accentOne: '#ff5722',
+      accentTwo: '#00bcd4',
+      accentThree: '#e0e0e0',
+      shadowColor: '#000000', // Solid black default shadow
+      borderColor: '#000000', // Solid black default border
+      text: '#000000',
+      fontFamily: 'Roboto',
+      logo: '🎨' // Specific logo provided in YAML
+    };
+
+    // Assert that the merged theme matches the expected object
+    assert.deepStrictEqual(mergedTheme, expectedTheme, 'Merged theme should match the expected object');
+
+    console.log('Successfully parsed YAML theme and merged with defaults.');
   });
 
   async function verifyImageContent(imagePath, expectedItems) {

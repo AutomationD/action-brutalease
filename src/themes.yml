@@ -9,6 +9,7 @@ mist_on_old_canvas:
   shadowColor: '#000000'
   borderColor: '#000000'
   fontFamily: Roboto
+  logo: '📚'             # Book emoji
 
 afternoon_peach_curtains:
   bgOne: '#fff7d1'         # pastel vanilla
@@ -20,7 +21,8 @@ afternoon_peach_curtains:
   text: '#000000'
   shadowColor: '#000000'
   borderColor: '#000000'
-  fontFamily: Roboto
+  fontFamily: Fira Code
+  logo: ':fa-solid fa-sun:' # Sun icon
 
 autumn_balcony_reflection:
   bgOne: '#fef9e1'         # parchment yellow
@@ -33,6 +35,7 @@ autumn_balcony_reflection:
   shadowColor: '#000000'
   borderColor: '#000000'
   fontFamily: Roboto
+  logo: '🍁'             # Leaf emoji
 
 blush_letter_from_paris:
   bgOne: '#ffcdb2'         # blush cream
@@ -44,7 +47,8 @@ blush_letter_from_paris:
   text: '#000000'
   shadowColor: '#000000'
   borderColor: '#000000'
-  fontFamily: Roboto
+  fontFamily: Fira Code
+  logo: ':fa-solid fa-envelope:' # Envelope icon
 
 velvet_theatre_drape:
   bgOne: '#740938'         # royal velvet red
@@ -56,4 +60,5 @@ velvet_theatre_drape:
   text: '#FFFFFF'
   shadowColor: '#000000'
   borderColor: '#000000'
-  fontFamily: Roboto
+  fontFamily: Fira Code
+  logo: ':fa-solid fa-theater-masks:' # Theater masks icon
