@@ -17,6 +17,7 @@ text: '#000000'
 shadowColor: '#000000'
 borderColor: '#000000'
 fontFamily: Roboto
+logo: 📚
 ```
 
 ## Afternoon Peach Curtains
@@ -33,7 +34,8 @@ accentThree: '#fff7d1'
 text: '#000000'
 shadowColor: '#000000'
 borderColor: '#000000'
-fontFamily: Roboto
+fontFamily: Fira Code
+logo: ':fa-solid fa-sun:'
 ```
 
 ## Autumn Balcony Reflection
@@ -51,6 +53,7 @@ text: '#000000'
 shadowColor: '#000000'
 borderColor: '#000000'
 fontFamily: Roboto
+logo: 🍁
 ```
 
 ## Blush Letter From Paris
@@ -67,7 +70,8 @@ accentThree: '#ffcdb2'
 text: '#000000'
 shadowColor: '#000000'
 borderColor: '#000000'
-fontFamily: Roboto
+fontFamily: Fira Code
+logo: ':fa-solid fa-envelope:'
 ```
 
 ## Velvet Theatre Drape
@@ -84,7 +88,8 @@ accentThree: '#740938'
 text: '#FFFFFF'
 shadowColor: '#000000'
 borderColor: '#000000'
-fontFamily: Roboto
+fontFamily: Fira Code
+logo: ':fa-solid fa-theater-masks:'
 ```
 
 <!-- THEME-GALLERY-END -->

@@ -16,27 +16,26 @@ inputs:
     description: 'Repository URL'
     required: true
   project_name:
-    description: 'Project name (defaults to repository name if not provided)'
+    description: 'Override the project name displayed on the badge'
     required: false
   project_description:
-    description: 'Short description of the project to display under the project name'
+    description: 'Add a short description below the project name'
     required: false
   theme:
-    description: 'YAML string defining theme colors (e.g., "bgOne: #ff0000\nbgTwo: #ffffff"). Missing values use defaults.'
+    description: 'Theme name, YAML string, or path to YAML file for customizing appearance'
     required: false
-  logo:
-    description: 'Logo URL to display in the badge'
-    required: false
+    default: 'default'
   debug:
-    description: 'Enable debug mode to save HTML output'
+    description: 'Enable debug mode to save HTML output (true/false)'
     required: false
     default: 'false'
   strict_style:
-    description: 'If true, will throw an error when fonts or styles are not available'
+    description: 'Apply stricter CSS styling to prevent text overflow (true/false)'
     required: false
-    default: 'true'
+    default: 'false'
   output:
-    description: 'Output file path'
+    description: 'The path where the generated image should be saved'
+    required: true
     default: 'release.png'
 
 runs:

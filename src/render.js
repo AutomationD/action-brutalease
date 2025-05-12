@@ -26,8 +26,183 @@ const defaultTheme = {
   text: '#000000',
   shadowColor: '#000000', // Solid black default shadow
   borderColor: '#000000', // Solid black default border
-  fontFamily: 'Roboto'
+  fontFamily: 'Roboto',
+  logo: '⚡'
 };
+
+// Refactor generateImage to accept individual parameters directly
+async function generateImage(version, body, repoUrl, outputPath, debug = false, themeInput = 'default', projectName = '', projectDescription = '', strictStyle = false) {
+  let browser = null;
+  try {
+    // Parse and merge the theme first
+    const theme = parseAndMergeTheme(themeInput);
+    console.log('Final merged theme:', theme);
+
+    // Extract logo from the theme
+    const logo = theme.logo;
+
+    browser = await chromium.launch({ headless: true });
+
+    // Log the arguments directly
+    console.log('Starting generateImage with arguments:', { version, body, repoUrl, outputPath, debug, themeInput, projectName, projectDescription, strictStyle });
+
+    // --- Logo Handling Logic ---
+    let logoType = 'none';
+    let logoContent = null;
+
+    if (logo) {
+      const faRegex = /^:fa-(?<type>\w+)\s+fa-(?<name>[\w-]+):$/;
+
+      if (typeof logo === 'string' && logo.startsWith(':fa-') && logo.endsWith(':')) {
+        logoType = 'fontawesome';
+        logoContent = logo.substring(1, logo.length - 1); // Remove leading/trailing colons
+        console.log('Logo identified as Font Awesome icon:', logoContent);
+      } else if (typeof logo === 'string' && logo.length === 1 || (logo.length === 2 && /\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDE4F]|\uD83D[\uDE80-\uDEFF]/.test(logo))) { // Basic emoji check (single char or common surrogate pairs)
+        logoType = 'emoji';
+        logoContent = logo;
+        console.log('Logo identified as Emoji:', logoContent);
+      } else if (typeof logo === 'string') { // Assume it's a path, try to get base64
+        try {
+          // Check if it looks like a path (basic check)
+          if (logo.includes('/') || logo.includes('\\')) {
+            const imageBuffer = await fs.readFile(logo);
+            logoContent = `data:image/${logo.substring(logo.lastIndexOf('.') + 1)};base64,${imageBuffer.toString('base64')}`;
+            logoType = 'image';
+            console.log('Logo identified as Image Path, successfully converted to base64.');
+          } else {
+            console.log(`Logo string "${logo}" doesn't look like a path and isn't a known type. Treating as no logo.`);
+            logoType = 'none';
+            logoContent = null;
+          }
+        } catch (error) {
+          console.error(`Error reading logo file at ${logo}:`, error);
+          // Fallback or decide how to handle error - for now, just no logo
+          logoType = 'none';
+          logoContent = null;
+        }
+      }
+    } else {
+      // If logo is null, undefined, or empty string from theme, treat as no logo
+      logoType = 'none';
+      logoContent = null;
+      console.log('No logo specified in theme or logo is empty.');
+    }
+    // --- End Logo Handling ---
+
+    // Ensure body is a string before attempting replace
+    const bodyString = typeof body === 'string' ? body : '';
+
+    console.log('Release body content including newline characters:');
+    console.log(bodyString.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
+
+    // Process markdown to shorten links before rendering and line estimation
+    const processedBody = shortenMarkdownLinks(bodyString);
+
+    const page = await browser.newPage();
+    await page.setViewportSize({ width: 1000, height: 500 });
+
+    const templatePath = join(__dirname, 'templates', 'default.html.hbs');
+    console.log('Template path:', templatePath);
+
+    const templateSource = await fs.readFile(templatePath, 'utf8');
+    console.log('Template content length:', templateSource.length);
+    console.log('Template first 100 chars:', templateSource.substring(0, 100));
+    console.log('Template includes new structure:', templateSource.includes('data-line-count="{{lineCount}}"'));
+    console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
+    const template = Handlebars.compile(templateSource);
+
+    // Register 'eq' helper for Handlebars
+    Handlebars.registerHelper('eq', function (a, b) {
+      return a === b;
+    });
+
+    // Calculate line count before rendering
+    const lineInfo = estimateLineCount(processedBody);
+    console.log('Estimated line count:', lineInfo);
+
+    // Calculate font sizes based on content density
+    const fontSizes = calculateFontSizes(lineInfo.count);
+    console.log('Calculated font sizes:', fontSizes);
+
+    let description = marked(processedBody);
+    description = insertLineBreaksForSubItems(description);
+    const repoName = getRepoName(repoUrl);
+
+    // Determine Project Name
+    const finalProjectName = projectName || getRepoName(repoUrl);
+
+    // Get the theme configuration
+    const themeConfig = theme;
+
+    // Calculate contrast text color for the tag
+    const tagTextColor = getContrastTextColor(themeConfig.accentOne);
+
+    const templateData = {
+      version,
+      description,
+      repoUrl,
+      repoName,
+      projectName: finalProjectName,
+      projectDescription,
+      // Pass logo type and content instead of raw logo path/base64
+      logoType: logoType,
+      logoContent: logoContent,
+      theme: themeConfig,
+      isImage: Boolean(outputPath),
+      // Add line count and content class to template data
+      lineCount: lineInfo.count,
+      contentClass: lineInfo.contentClass,
+      fontSizes: fontSizes,
+      tagTextColor: tagTextColor
+    };
+
+    console.log('Template data:', templateData);
+    const html = template(templateData);
+    await page.setContent(html);
+    console.log('Template rendered');
+
+    // Check if the specified font is available
+    const fontAvailable = await checkFontAvailability(page, themeConfig.fontFamily);
+    if (!fontAvailable) {
+      const errorMessage = `Error: The specified font '${themeConfig.fontFamily}' is not available.`;
+      console.error(errorMessage);
+
+      // If strict style is enabled, throw an error
+      if (strictStyle === true || String(strictStyle).toLowerCase() === 'true') { // Handle boolean or string 'true'
+        await browser.close();
+        throw new Error(errorMessage);
+      } else {
+        console.warn(`Warning: Continuing with fallback fonts because STRICT_STYLE is not enabled.`);
+      }
+    } else {
+      console.log(`Font '${themeConfig.fontFamily}' is available and will be used.`);
+    }
+
+    if (debug === true || String(debug).toLowerCase() === 'true') {
+      const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
+      await fs.writeFile(htmlPath, html);
+      console.log('Debug HTML saved to:', htmlPath);
+    }
+
+    // Ensure outputPath is provided before taking screenshot
+    if (outputPath) {
+      console.log('Taking screenshot to:', outputPath);
+      await page.screenshot({ path: outputPath });
+      console.log('Screenshot taken');
+    } else {
+      console.warn('Warning: No outputPath provided, skipping screenshot.')
+    }
+
+    await browser.close();
+    console.log('Browser closed');
+  } catch (error) {
+    if (browser) {
+      await browser.close();
+    }
+    console.error('Error generating image:', error);
+    process.exit(1);
+  }
+}
 
 // New function to parse theme input and merge with defaults
 function parseAndMergeTheme(themeInput) {
@@ -44,6 +219,8 @@ function parseAndMergeTheme(themeInput) {
     } catch (e) {
       console.warn(`Failed to parse theme YAML: ${e.message}. Using default theme.`);
     }
+  } else if (themeInput && typeof themeInput === 'object') {
+    userTheme = themeInput;
   } else {
     console.log("No theme input provided or input is empty. Using default theme.");
   }
@@ -347,141 +524,6 @@ async function checkFontAvailability(page, fontFamily) {
   return isFontAvailable.isAvailable;
 }
 
-// Refactor generateImage to accept a single options object
-async function generateImage(options) {
-  // Destructure options with default values where appropriate
-  const {
-    version,
-    body,
-    repoUrl,
-    outputPath,
-    logo = null,
-    debug = false,
-    themeInput = '',
-    projectName = '',
-    projectDescription = '',
-    strictStyle = false
-  } = options;
-
-  let browser = null;
-  try {
-    // Parse theme input and merge with defaults using the new function
-    const theme = parseAndMergeTheme(themeInput);
-
-    browser = await chromium.launch({ headless: true });
-
-    // Log the destructured options instead of the original arguments
-    console.log('Starting generateImage with options:', { version, body, repoUrl, outputPath, logo, debug, themeInput, projectName, projectDescription, strictStyle });
-
-    // Ensure body is a string before attempting replace
-    const bodyString = typeof body === 'string' ? body : '';
-    console.log('Release body content including newline characters:');
-    console.log(bodyString.replace(/\r/g, '\\r').replace(/\n/g, '\\n'));
-
-    // Process markdown to shorten links before rendering and line estimation
-    const processedBody = shortenMarkdownLinks(bodyString);
-
-    const page = await browser.newPage();
-    await page.setViewportSize({ width: 1000, height: 500 });
-
-    const templatePath = join(__dirname, 'templates', 'default.html.hbs');
-    console.log('Template path:', templatePath);
-
-    const templateSource = await fs.readFile(templatePath, 'utf8');
-    console.log('Template content length:', templateSource.length);
-    console.log('Template first 100 chars:', templateSource.substring(0, 100));
-    console.log('Template includes new structure:', templateSource.includes('data-line-count="{{lineCount}}"'));
-    console.log('Template includes content class:', templateSource.includes('class="content-box {{contentClass}}"'));
-    const template = Handlebars.compile(templateSource);
-
-    // Calculate line count before rendering
-    const lineInfo = estimateLineCount(processedBody);
-    console.log('Estimated line count:', lineInfo);
-
-    // Calculate font sizes based on content density
-    const fontSizes = calculateFontSizes(lineInfo.count);
-    console.log('Calculated font sizes:', fontSizes);
-
-    let description = marked(processedBody);
-    description = insertLineBreaksForSubItems(description);
-    const logoBase64 = logo ? await getBase64Logo(logo) : null;
-    const repoName = getRepoName(repoUrl);
-
-    // Determine Project Name
-    const finalProjectName = projectName || getRepoName(repoUrl);
-
-    // Get the theme configuration
-    const themeConfig = theme;
-
-    // Calculate contrast text color for the tag
-    const tagTextColor = getContrastTextColor(themeConfig.accentOne);
-
-    const templateData = {
-      version,
-      description,
-      repoUrl,
-      repoName,
-      projectName: finalProjectName, // Use determined project name
-      projectDescription,
-      logo: logoBase64,
-      theme: themeConfig, // Pass the theme object directly
-      isImage: Boolean(outputPath),
-      // Add line count and content class to template data
-      lineCount: lineInfo.count,
-      contentClass: lineInfo.contentClass,
-      // Add font size variables
-      fontSizes: fontSizes,
-      tagTextColor: tagTextColor // Pass calculated tag text color
-    };
-
-    console.log('Template data:', templateData);
-    const html = template(templateData);
-    await page.setContent(html);
-    console.log('Template rendered');
-
-    // Check if the specified font is available
-    const fontAvailable = await checkFontAvailability(page, themeConfig.fontFamily);
-    if (!fontAvailable) {
-      const errorMessage = `Error: The specified font '${themeConfig.fontFamily}' is not available.`;
-      console.error(errorMessage);
-
-      // If strict style is enabled, throw an error
-      if (strictStyle === true || String(strictStyle).toLowerCase() === 'true') { // Handle boolean or string 'true'
-        await browser.close();
-        throw new Error(errorMessage);
-      } else {
-        console.warn(`Warning: Continuing with fallback fonts because STRICT_STYLE is not enabled.`);
-      }
-    } else {
-      console.log(`Font '${themeConfig.fontFamily}' is available and will be used.`);
-    }
-
-    if (debug === true || String(debug).toLowerCase() === 'true') {
-      const htmlPath = outputPath.replace(/\.[^.]+$/, '.html');
-      await fs.writeFile(htmlPath, html);
-      console.log('Debug HTML saved to:', htmlPath);
-    }
-
-    // Ensure outputPath is provided before taking screenshot
-    if (outputPath) {
-      console.log('Taking screenshot to:', outputPath);
-      await page.screenshot({ path: outputPath });
-      console.log('Screenshot taken');
-    } else {
-      console.warn('Warning: No outputPath provided, skipping screenshot.')
-    }
-
-    await browser.close();
-    console.log('Browser closed');
-  } catch (error) {
-    if (browser) {
-      await browser.close();
-    }
-    console.error('Error generating image:', error);
-    process.exit(1);
-  }
-}
-
 // Main function to run when the script is executed directly
 async function main() {
   try {
@@ -490,7 +532,6 @@ async function main() {
     const body = process.env.INPUT_BODY;
     const repoUrl = process.env.INPUT_REPO_URL;
     const outputPath = process.env.INPUT_OUTPUT;
-    const logo = process.env.INPUT_LOGO || null;
     const debug = process.env.INPUT_DEBUG;
     const themeInput = process.env.INPUT_THEME;
     const projectName = process.env.INPUT_PROJECT_NAME || getRepoName(repoUrl);
@@ -502,7 +543,6 @@ async function main() {
       body: body.substring(0, 100) + (body.length > 100 ? '...' : ''),
       repoUrl,
       outputPath,
-      logo,
       debug,
       themeInput,
       projectName,
@@ -511,18 +551,17 @@ async function main() {
     });
 
     // Generate the image
-    await generateImage({
+    await generateImage(
       version,
       body,
       repoUrl,
       outputPath,
-      logo,
       debug,
       themeInput,
       projectName,
       projectDescription,
       strictStyle
-    });
+    );
 
     console.log('Image generation complete!');
   } catch (error) {

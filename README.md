@@ -1,7 +1,7 @@
 # NEO-BRUTALIST RELEASE BANNER GENERATOR
 
-![Tests](https://github.com/automationd/action-brutalese/actions/workflows/test.yml/badge.svg)
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/automationd/action-brutalese)
+[![Tests](https://github.com/dimmkirr/action-brutalese/actions/workflows/test.yml/badge.svg)](https://github.com/dimmkirr/action-brutalese/actions/workflows/test.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v-release/dimmkirr/action-brutalese)](https://github.com/dimmkirr/action-brutalease/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **MAKE YOUR RELEASES BOLD. UNAPOLOGETIC. MEMORABLE.**
@@ -56,7 +56,12 @@ Add this action to your release workflow to automatically generate a Neo-Brutali
     output: release-banner.png
     project_name: Brutalease
     project_description: Neo-brutalist release banner
-    logo: ${{ github.workspace }}/test/data/logo.png
+    theme: |
+      bgOne: '#333333'
+      text: '#ffffff'
+      accentOne: '#ff5722' # Hex color codes only
+      logo: ':fa-brands fa-galactic-republic:' # Logo defined within the theme!
+    debug: true
 # ...
 ```
 
@@ -103,11 +108,12 @@ Or use a major version to automatically get updates within that major version:
 | `repo_url`          | Repository URL                                                                                      | Yes      |           |
 | `project_name`      | Project name (defaults to repository name if not provided)                                          | No       | Repo Name |
 | `project_description` | Short description of the project to display under the project name                                  | No       |           |
-| `theme`             | YAML string defining theme colors (e.g., `"bgOne: #aabbcc\ntext: #112233"`). Missing values use defaults. | No       | Internal Defaults |
-| `logo`              | Logo URL to display in the badge                                                                    | No       |           |
+| `theme`             | YAML string defining theme colors (e.g., `"bgOne: #aabbcc\ntext: #112233"`). Can include `logo` key (emoji, `:fa-...:`, or image path). Missing values use defaults. | No       | Internal Defaults |
 | `debug`             | Enable debug mode to save HTML output                                                               | No       | `false`   |
 | `strict_style`      | If true, will throw an error when fonts or styles are not available                                 | No       | `true`    |
 | `output`            | Output file path                                                                                    | No       | `release.png`|
+
+**Removed**: `logo` input. Now part of `theme` input.
 
 ## OUTPUTS
 
@@ -161,16 +167,15 @@ You can customize the theme by providing a YAML multiline string using the `|` c
     repo_url: ${{ github.repositoryUrl }}
     project_description: "My awesome project description" # Optional description
     # Example: Override specific colors using a YAML multiline string
-    theme: | # Use '|' for a multiline string
+    theme: |
       bgOne: '#333333'
       text: '#ffffff'
       accentOne: '#ff5722' # Hex color codes only
-      # ... add other theme parameters as needed
+      logo: ':fa-brands fa-galactic-republic:' # Logo defined within the theme!
     # Optionally provide a logo
     # logo: "https://example.com/logo.png"
     output: release-banner.png
 ```
-
 
 ## CONTRIBUTING
 

@@ -11,7 +11,6 @@ const rootDir = path.resolve(__dirname, '..'); // Project root
 const themesFilePath = path.join(rootDir, 'src', 'themes.yml'); // Updated path
 const themesOutputDir = path.join(rootDir, 'themes');
 const themesReadmePath = path.join(themesOutputDir, 'README.md'); // Target themes/README.md
-const defaultLogoPath = path.join(rootDir, 'test', 'data', 'logo.png'); // Optional default logo
 
 // Placeholder markers for the themes/README.md
 const START_MARKER = '<!-- THEME-GALLERY-START -->';
@@ -24,7 +23,6 @@ const sampleData = {
     repoUrl: 'https://github.com/user/repo', // Generic repo URL
     projectName: 'Theme Preview', // Adjust as needed
     projectDescription: 'Banner Example', // Adjust as needed
-    logo: fs.existsSync(defaultLogoPath) ? defaultLogoPath : null, // Use logo if it exists
     debug: false, // Set to true for debug HTML output
     strictStyle: false
 };
@@ -98,17 +96,23 @@ async function generateThemePreviews() { // Renamed function
                 // Format theme name for display
                 const formattedName = formatThemeName(themeName);
 
-                const params = {
-                    ...sampleData,
-                    themeInput: themeYamlString,
-                    outputPath: outputPath,
-                    projectName: formattedName
-                };
+                // Prepare arguments for generateImage based on its signature
+                const args = [
+                    sampleData.version,
+                    sampleData.body,
+                    sampleData.repoUrl,
+                    outputPath,                 // outputPath specific to this theme
+                    sampleData.debug,
+                    themeYamlString,            // themeInput specific to this theme
+                    formattedName,              // projectName specific to this theme
+                    sampleData.projectDescription,
+                    sampleData.strictStyle
+                ];
 
                 try {
-                    await generateImage(params);
+                    // Call generateImage with individual arguments
+                    await generateImage(...args);
                     console.log(`✅ Successfully generated image for: ${themeName}`);
-
 
                     // Generate Markdown snippet using path relative to themes/README.md
                     const relativeImagePath = `./${themeName}.png`; // Keep filename as the ID
