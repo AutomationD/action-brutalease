@@ -50,6 +50,32 @@ const testBodies = [
 * @dimmkirr made their first contribution in https://github.com/dimmkirr/action-brutalease/pull/1
 
 **Full Changelog**: https://github.com/dimmkirr/action-brutalease/commits/v1.0.0`
+  }, {
+    name: "long-change-list",
+    content: `## What's Changed
+* Add neo-brutalist release banner generator by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/1
+* Adjust font sizing, style properties, scaling factors, add link shortening feature by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/2
+* Update test workflow name and README badges by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/3
+* Adjust spacing between lists and paragraphs by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/4
+* Update Docker image usage and CI workflow by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/5
+* Update release workflow for Docker image handling by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/6
+* Add ID to Docker push step in release workflow by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/7
+* Update action.yml to use composite runs & docker image by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/8
+* Update Dockerfile and workflow configurations by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/9
+* Update Dockerfile and workflow configurations by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/10
+* Update Docker image version in action.yml by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/11
+* Update action to use local directory by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/12
+* Update working directory and logo paths in config by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/13
+* Add Themes feature by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/14
+* Fix GitHub release badge URL by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/15
+* Add themes, update parameter schema, improve logo handling, Update README by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/16
+* Fix badge links in README by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/17
+* Update references to dimmkirr/action-brutalease by @dimmkirr in https://github.com/dimmkirr/action-brutalease/pull/18
+
+## New Contributors
+* @dimmkirr made their first contribution in https://github.com/dimmkirr/action-brutalease/pull/1
+
+**Full Changelog**: https://github.com/dimmkirr/action-brutalease/commits/v1.0.1`
   }
 ];
 

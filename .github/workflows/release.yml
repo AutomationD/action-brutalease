@@ -88,6 +88,16 @@ jobs:
           git tag -f ${{ github.event.release.tag_name }}
           git push --force origin ${{ github.event.release.tag_name }}
 
+          # Extract major version from the tag
+          MAJOR_VERSION=$(echo "${{ github.event.release.tag_name }}" | cut -d'.' -f1)
+          echo "Full tag: ${{ github.event.release.tag_name }}"
+          echo "Major version determined: $MAJOR_VERSION"
+
+          # Create/Move the major version tag (e.g., v1, v2)
+          echo "Tagging commit with major version tag: $MAJOR_VERSION"
+          git tag -f "$MAJOR_VERSION"
+          git push --force origin "$MAJOR_VERSION"
+
 
   generate-banner:
     runs-on: ubuntu-latest
