@@ -2,7 +2,7 @@
 
 [![Tests](https://github.com/dimmkirr/action-brutalease/actions/workflows/test.yml/badge.svg)](https://github.com/dimmkirr/action-brutalease/actions/workflows/test.yml)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/DimmKirr/action-brutalease)](https://github.com/dimmkirr/action-brutalease/releases/latest)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache-yellow.svg)](./LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **MAKE YOUR RELEASES BOLD. UNAPOLOGETIC. MEMORABLE.**
 
